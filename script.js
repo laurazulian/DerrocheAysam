@@ -16,28 +16,24 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
-    // Carga datos en el select de departamento
     async function loadDepartamentos() {
         try {
-            // Llama a la API de departamentos
+            // Usando un proxy para hacer la solicitud
             const response = await fetch("http://10.10.0.238:8080/ords/manantial/Derroche/get_departamentos");
             if (!response.ok) {
                 throw new Error(`Error HTTP: ${response.status}`);
             }
-    
+        
             const data = await response.json();
-            console.log(data); 
-    
+            console.log(data); // Para ver el JSON en consola
+        
             // Accede al arreglo en data.items
             const departamentos = data.items;
             console.log(departamentos);
-    
-            // Selecciona el select de departamentos
-            const departamentoSelect = document.getElementById("departamento");
-    
+        
             // Limpia las opciones existentes (si hay)
             departamentoSelect.innerHTML = '<option value="">Seleccione un departamento</option>';
-    
+        
             // Pobla el select con los valores de dep_descripcion
             departamentos.forEach(dep => {
                 const option = document.createElement("option");
@@ -51,29 +47,43 @@ document.addEventListener("DOMContentLoaded", () => {
     }
     
     // Llama a la función cuando cargue la página
-    document.addEventListener("DOMContentLoaded", loadDepartamentos);
-    
-    
-    // Llama a la función al cargar la página
-    document.addEventListener("DOMContentLoaded", () => {
-        loadDepartamentos();
-    });
-    
+    loadDepartamentos();
 
     // Carga datos en el select de tipificación
     async function loadTipificaciones() {
-        const tipificaciones = await fetchFromAPI("http://10.10.0.238:8080/ords/manantial/Derroche/get_tpf_derroche");
-        tipificaciones.forEach(tip => {
-            const option = document.createElement("option");
-            option.value = tip.id;
-            option.textContent = tip.nombre;
-            tipificacionSelect.appendChild(option);
-        });
+        try {
+            // Llama a la API de tipificaciones
+            const response = await fetch("http://10.10.0.238:8080/ords/manantial/Derroche/get_tpf_derroche");
+            
+            if (!response.ok) {
+                throw new Error(`Error HTTP: ${response.status}`);
+            }
+    
+            // Convierte la respuesta a JSON
+            const data = await response.json();
+            const tipificaciones = data.items; // Accede al arreglo 'items'
+    
+            // Selecciona el select de tipificaciones
+            const tipificacionSelect = document.getElementById("tipificacion");
+    
+            // Limpia las opciones existentes (si hay)
+            tipificacionSelect.innerHTML = '<option value="">Seleccione una tipificación</option>';
+    
+            // Recorre el arreglo de tipificaciones y agrega las opciones
+            tipificaciones.forEach(tip => {
+                const option = document.createElement("option");
+                option.value = tip.tpf_id; // Usa tpf_id como valor
+                option.textContent = tip.tpf_descripcion; // Usa tpf_descripcion como texto
+                tipificacionSelect.appendChild(option);
+            });
+        } catch (error) {
+            console.error("Error al cargar las tipificaciones:", error);
+        }
     }
-
-    // Inicializa la carga de datos
-    loadDepartamentos();
+    
+    // Llama a la función cuando cargue la página
     loadTipificaciones();
+    
 
     // Evento de envío de formulario
     document.getElementById("formulario").addEventListener("submit", (e) => {
