@@ -47,3 +47,85 @@ button {
 button:hover {
     background-color: #0056b3;
 }
+/* Fondo general de la sección */
+.section-background {
+    background-color: #0074A1; /* Fondo azul */
+    padding: 10px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+}
+
+/* Estilo de la tarjeta del formulario */
+.form-card {
+    background-color: #ffffff;
+    padding: 30px;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Sombra */
+    width: 100%;
+    max-width: 400px;
+    text-align: center;
+}
+
+/* Estilo del título */
+.form-card h1 {
+    color: #0074A1;
+    font-size: 2em;
+    margin-bottom: 20px;
+}
+
+/* Estilos de los grupos del formulario */
+.form-group {
+    margin-bottom: 15px;
+    text-align: left;
+}
+
+/* Etiquetas */
+.form-group label {
+    color: #333;
+    font-weight: bold;
+    display: block;
+    margin-bottom: 5px;
+}
+
+/* Campos de entrada */
+.form-group input[type="text"],
+.form-group input[type="number"],
+.form-group select,
+.form-group input[type="file"] {
+    width: 100%;
+    padding: 8px;
+    font-size: 1em;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    box-sizing: border-box;
+    transition: border-color 0.3s;
+}
+
+/* Borde al enfocarse */
+.form-group input[type="text"]:focus,
+.form-group input[type="number"]:focus,
+.form-group select:focus,
+.form-group input[type="file"]:focus {
+    border-color: #0074A1;
+    outline: none;
+}
+
+/* Botón de envío */
+button[type="submit"] {
+    background-color: #0074A1;
+    color: #ffffff;
+    border: none;
+    padding: 10px 20px;
+    font-size: 1em;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+    width: 100%;
+    margin-top: 15px;
+}
+
+button[type="submit"]:hover {
+    background-color: #005f80;
+}
