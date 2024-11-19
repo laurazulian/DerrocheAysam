@@ -2,8 +2,8 @@ document.addEventListener("DOMContentLoaded", () => {
     const departamentoSelect = document.getElementById("departamento");
     const tipificacionSelect = document.getElementById("tipificacion");
     const domicilioInput = document.getElementById("domicilio");
-    const captchaInput = document.getElementById("captcha");
-    const captchaError = document.getElementById("captchaError");
+    //const captchaInput = document.getElementById("captcha");
+    //const captchaError = document.getElementById("captchaError");
 
     // Simula obtener datos desde una API
     async function fetchFromAPI(endpoint) {
@@ -85,37 +85,35 @@ document.addEventListener("DOMContentLoaded", () => {
         }*/
 
         // Validar domicilio
-        if (domicilioInput.value.length > 150) {
-            alert("El domicilio no puede superar los 150 caracteres.");
-            return;
-        }
-
-        const formData = new FormData(e.target);
-        const data = Object.fromEntries(formData.entries());
-        console.log(data);
+        const dataToPost = {
+            departamento: formData.get("departamento"),
+            tipificacion: formData.get("tipificacion"),
+            hora: formData.get("hora"),  // Formato HH:MM
+            domicilio: formData.get("domicilio"),
+            foto: formData.get("foto") // Suponiendo que la URL de la foto ya está generada
+        };
 
         try {
             // Enviar los datos al servidor usando POST
-            const response = await fetch("http://10.10.0.238:8080/tu_endpoint_aqui", {
+            const response = await fetch("http://10.10.0.238:8080/ords/manantial/Derroche/post_derroche", {
                 method: "POST",
-                body: formData,  // Se envían los datos del formulario, incluidos los archivos
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(dataToPost) // Enviar el objeto como JSON
             });
 
             if (response.ok) {
-                // Verificamos que la respuesta sea correcta
-                const result = await response.json();  // Si la respuesta es JSON
-                console.log(result);
-                alert("Formulario enviado con éxito: " + result.message); // Alerta en caso de éxito
+                const result = await response.json();
+                alert("Formulario enviado con éxito: " + result.message);
             } else {
-                // Si la respuesta no es exitosa, mostramos un error
-                const error = await response.text();  // Puede ser texto si el servidor no responde en formato JSON
-                console.error(error);
+                const error = await response.text();
+                console.error("Error en la respuesta:", error);
                 alert("Hubo un problema al enviar los datos.");
             }
         } catch (error) {
-            // Manejo de errores si ocurre un fallo en el envío
             console.error("Error al enviar los datos:", error);
-            alert("Hubo un problema al enviar los datos.");
+            alert("Ocurrió un error inesperado al enviar el formulario.");
         }
     });
 });
