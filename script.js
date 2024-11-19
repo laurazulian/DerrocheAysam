@@ -73,9 +73,53 @@ document.addEventListener("DOMContentLoaded", () => {
     loadTipificaciones();
     
     document.getElementById("formulario").addEventListener("submit", async (e) => {
-        e.preventDefault();
+        e.preventDefault(); // Prevenir el comportamiento por defecto del formulario
+    
+        // Obtener los datos directamente desde los elementos del formulario
+        const departamento = document.getElementById("departamento").value;
+        const tipificacion = document.getElementById("tipificacion").value;
+        const hora = document.getElementById("hora").value ? document.getElementById("hora").value.replace(":", "") : null; // Convertir HH:MM a HHMM
+        const domicilio = document.getElementById("domicilio").value;
+        const foto = document.getElementById("foto").files[0]; // Seleccionar el archivo cargado (opcional)
+    
+        // Crear un objeto para enviar los datos
+        const dataToPost = {
+            p_dep_codigo: departamento, // Cambiar los nombres de las claves al esperado
+            p_tpf_id: tipificacion,
+            p_hora: hora,
+            p_domicilio: domicilio,
+            p_foto: foto ? foto.name : null
+        };
+    
+        console.log("Datos enviados:", dataToPost); // Verifica que los datos sean correctos
+    
+        try {
+            const response = await fetch("http://10.10.0.238:8080/ords/manantial/Derroche/post_derroche", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json", // Indicar que se envía un JSON
+                },
+                body: JSON.stringify(dataToPost) // Convertir el objeto a JSON
+            });
+    
+            if (response.ok) {
+                const result = await response.json(); // Procesar la respuesta como JSON
+                console.log("Respuesta de la API:", result);
+                alert("Formulario enviado con éxito" ); // Mostrar mensaje de éxito
+            } else {
+                const error = await response.text(); // Leer el mensaje de error
+                console.error("Error en la respuesta:", error);
+                alert("Hubo un problema al enviar los datos. Verifica tu información.");
+            }
+        } catch (error) {
+            console.error("Error al enviar los datos:", error); // Mostrar errores en la consola
+            alert("Ocurrió un error inesperado al enviar el formulario.");
+        }
+    });
+    
+    
 
-        // Validar captcha
+     // Validar captcha
         /*const captchaCorrecto = captchaInput.value.trim() === "7"; 
         if (!captchaCorrecto) {
             captchaError.style.display = "block";
@@ -83,37 +127,4 @@ document.addEventListener("DOMContentLoaded", () => {
         } else {
             captchaError.style.display = "none";
         }*/
-
-        // Validar domicilio
-        const dataToPost = {
-            departamento: formData.get("departamento"),
-            tipificacion: formData.get("tipificacion"),
-            hora: formData.get("hora"),  // Formato HH:MM
-            domicilio: formData.get("domicilio"),
-            foto: formData.get("foto") // Suponiendo que la URL de la foto ya está generada
-        };
-
-        try {
-            // Enviar los datos al servidor usando POST
-            const response = await fetch("http://10.10.0.238:8080/ords/manantial/Derroche/post_derroche", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify(dataToPost) // Enviar el objeto como JSON
-            });
-
-            if (response.ok) {
-                const result = await response.json();
-                alert("Formulario enviado con éxito: " + result.message);
-            } else {
-                const error = await response.text();
-                console.error("Error en la respuesta:", error);
-                alert("Hubo un problema al enviar los datos.");
-            }
-        } catch (error) {
-            console.error("Error al enviar los datos:", error);
-            alert("Ocurrió un error inesperado al enviar el formulario.");
-        }
-    });
 });
