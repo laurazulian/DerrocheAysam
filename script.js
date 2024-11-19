@@ -138,24 +138,21 @@ document.addEventListener("DOMContentLoaded", () => {
         const domicilio = document.getElementById("domicilio").value;
         const foto = document.getElementById("foto").files[0]; // Seleccionar el archivo cargado (opcional)
 
-        // Crear un objeto para enviar los datos
-        const dataToPost = {
-            p_dep_codigo: departamento,
-            p_tpf_id: tipificacion,
-            p_hora: hora,
-            p_domicilio: domicilio,
-            p_foto: foto ? foto.name : null
-        };
+        // Crear un objeto FormData para enviar los datos del formulario y el archivo
+        const formData = new FormData();
+        formData.append("p_dep_codigo", departamento);
+        formData.append("p_tpf_id", tipificacion);
+        formData.append("p_hora", hora);
+        formData.append("p_domicilio", domicilio);
+        if (foto) {
+            formData.append("p_foto", foto); // Agregar el archivo
+        }
 
-        console.log("Datos enviados:", dataToPost); // Verifica que los datos sean correctos
-
+        // Enviar los datos mediante POST usando FormData
         try {
             const response = await fetch("http://10.10.0.238:8080/ords/manantial/Derroche/post_derroche", {
                 method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify(dataToPost)
+                body: formData // Usamos el objeto FormData
             });
 
             if (response.ok) {
