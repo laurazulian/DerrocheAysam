@@ -19,7 +19,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     async function loadDepartamentos() {
         try {
-            const response = await fetch("http://10.10.0.238:8080/ords/manantial/Derroche/get_departamentos");
+            const response = await fetch("https://testoficinavirtual.aysam.com.ar/test/Derroche/get_departamentos");
             if (!response.ok) {
                 throw new Error(`Error HTTP: ${response.status}`);
             }
@@ -45,7 +45,7 @@ document.addEventListener("DOMContentLoaded", () => {
     // Carga datos en el select de tipificación
     async function loadTipificaciones() {
         try {
-            const response = await fetch("http://10.10.0.238:8080/ords/manantial/Derroche/get_tpf_derroche");
+            const response = await fetch("https://testoficinavirtual.aysam.com.ar/test/Derroche/get_tpf_derroche");
             
             if (!response.ok) {
                 throw new Error(`Error HTTP: ${response.status}`);
@@ -82,13 +82,13 @@ document.addEventListener("DOMContentLoaded", () => {
     
         // Validar tipo de archivo
         if (!tiposPermitidos.includes(archivo.type)) {
-            alert("El archivo debe ser JPG, JPEG o PNG.");
+            openModal("El archivo debe ser JPG, JPEG o PNG.");
             return false;
         }
     
         // Validar tamaño de archivo
         if (archivo.size > tamanioMaximo) {
-            alert("El archivo no puede superar los 10MB.");
+            openModal("El archivo no puede superar los 10MB.");
             return false;
         }
     
@@ -96,18 +96,66 @@ document.addEventListener("DOMContentLoaded", () => {
     }
     
 
-    // Validación para el campo de domicilio (sin caracteres especiales)
-    function validarDomicilio(inputDomicilio) {
+      // Validación para el campo de domicilio (sin caracteres especiales)
+      function validarDomicilio(inputDomicilio) {
         const domicilio = inputDomicilio.value;
         const regexDomicilio = /^[a-zA-Z0-9\s,.-]*$/;  // Permite solo letras, números, espacio, coma, punto y guion.
-
+    
+        // Validación de caracteres permitidos
         if (!regexDomicilio.test(domicilio)) {
-            alert("El domicilio no puede contener caracteres especiales.");
+            openModal("El domicilio no puede contener caracteres especiales.");
             return false;
         }
-
+    
+        // Validación de longitud máxima de 150 caracteres
+        if (domicilio.length > 150) {
+            openModal("El domicilio no puede superar los 150 caracteres.");
+            return false;
+        }
+    
         return true;
     }
+
+
+
+
+     // Función para abrir el modal con un mensaje y cerrarlo automáticamente
+    function openModal(message, autoClose = true, closeAfter = 3000) { // Por defecto, cierra tras 3 segundos
+        const modalMessage = document.getElementById("modalMessage");
+        const messageModal = document.getElementById("messageModal");
+        
+        modalMessage.textContent = message;
+        messageModal.style.display = "block";
+
+        // Cerrar automáticamente el modal si está habilitado
+        if (autoClose) {
+            setTimeout(() => {
+                messageModal.style.display = "none";
+            }, closeAfter);
+        }
+    }
+
+    // Función para cerrar el modal manualmente
+    const modalClose = document.getElementById("modalClose");
+    modalClose.onclick = function () {
+        const messageModal = document.getElementById("messageModal");
+        messageModal.style.display = "none";
+    };
+
+    // Cierra el modal si se hace clic fuera de la ventana
+    window.onclick = function (event) {
+        const messageModal = document.getElementById("messageModal");
+        if (event.target == messageModal) {
+            messageModal.style.display = "none";
+        }
+    };
+
+
+
+
+
+
+    const overlay = document.getElementById("overlay");
 
     formulario.addEventListener("submit", async (e) => {
         e.preventDefault(); // Prevenir el comportamiento por defecto del formulario
@@ -117,7 +165,17 @@ document.addEventListener("DOMContentLoaded", () => {
         if (!validarArchivo(archivoInput)) {
             return; // Detener el envío si no es válido
         }
-    
+
+        const domicilioInput = document.getElementById("domicilio");
+        if (!validarDomicilio(domicilioInput)) {
+            return; // Detener el envío si el domicilio no es válido
+        }
+
+
+        
+         // Muestra el overlay
+        overlay.classList.remove("hidden");
+
         // Crear un objeto FormData
         const formData = new FormData();
     
@@ -147,14 +205,14 @@ document.addEventListener("DOMContentLoaded", () => {
                 const filename = fileData.filename; // Obtener el nombre del archivo
                 formData.append("p_foto", filename);  // Enviar solo el nombre del archivo a la base de datos
             } else {
-                alert("Error al subir el archivo");
+                openModal("Error al subir el archivo");
                 return;
             }
         }
     
         try {
             // Enviar el formulario con el nombre del archivo
-            const response = await fetch("http://10.10.0.238:8080/ords/manantial/Derroche/post_derroche", {
+            const response = await fetch("https://testoficinavirtual.aysam.com.ar/test/Derroche/post_derroche", {   
                 method: "POST",
                 body: formData,
             });
@@ -162,15 +220,19 @@ document.addEventListener("DOMContentLoaded", () => {
             if (response.ok) {
                 const result = await response.text(); 
                 console.log("Respuesta de la API:", result);
-                alert("Formulario enviado con éxito");
+                openModal("Gracias. Su denuncia ha sido registrada.");
+                formulario.reset();
             } else {
                 const error = await response.text();
                 console.error("Error en la respuesta:", error);
-                alert("Hubo un problema al enviar los datos. Verifica tu información.");
+                openModal("Hubo un problema al enviar los datos. Verifica tu información.");
             }
         } catch (error) {
             console.error("Error al enviar los datos:", error);
-            alert("Ocurrió un error inesperado al enviar el formulario.");
+            openModal("Ocurrió un error inesperado al enviar el formulario.");
+         } finally {
+            // Oculta el overlay
+            overlay.classList.add("hidden");
         }
     });
     
