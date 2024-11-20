@@ -97,17 +97,26 @@ document.addEventListener("DOMContentLoaded", () => {
     
 
     // Validación para el campo de domicilio (sin caracteres especiales)
+    // Validación para el campo de domicilio (sin caracteres especiales)
     function validarDomicilio(inputDomicilio) {
         const domicilio = inputDomicilio.value;
         const regexDomicilio = /^[a-zA-Z0-9\s,.-]*$/;  // Permite solo letras, números, espacio, coma, punto y guion.
-
+    
+        // Validación de caracteres permitidos
         if (!regexDomicilio.test(domicilio)) {
             alert("El domicilio no puede contener caracteres especiales.");
             return false;
         }
-
+    
+        // Validación de longitud máxima de 150 caracteres
+        if (domicilio.length > 150) {
+            alert("El domicilio no puede superar los 150 caracteres.");
+            return false;
+        }
+    
         return true;
     }
+
 
     formulario.addEventListener("submit", async (e) => {
         e.preventDefault(); // Prevenir el comportamiento por defecto del formulario
@@ -117,7 +126,11 @@ document.addEventListener("DOMContentLoaded", () => {
         if (!validarArchivo(archivoInput)) {
             return; // Detener el envío si no es válido
         }
-    
+        const domicilioInput = document.getElementById("domicilio");
+        if (!validarDomicilio(domicilioInput)) {
+            return; // Detener el envío si el domicilio no es válido
+        }
+
         // Crear un objeto FormData
         const formData = new FormData();
     
