@@ -19,7 +19,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     async function loadDepartamentos() {
         try {
-            const response = await fetch("http://10.10.0.238:8080/ords/manantial/Derroche/get_departamentos");
+            const response = await fetch("https://testoficinavirtual.aysam.com.ar/test/Derroche/get_departamentos");
             if (!response.ok) {
                 throw new Error(`Error HTTP: ${response.status}`);
             }
@@ -45,7 +45,7 @@ document.addEventListener("DOMContentLoaded", () => {
     // Carga datos en el select de tipificación
     async function loadTipificaciones() {
         try {
-            const response = await fetch("http://10.10.0.238:8080/ords/manantial/Derroche/get_tpf_derroche");
+            const response = await fetch("https://testoficinavirtual.aysam.com.ar/test/Derroche/get_tpf_derroche");
             
             if (!response.ok) {
                 throw new Error(`Error HTTP: ${response.status}`);
@@ -154,7 +154,7 @@ document.addEventListener("DOMContentLoaded", () => {
     
         try {
             // Enviar el formulario con el nombre del archivo
-            const response = await fetch("http://10.10.0.238:8080/ords/manantial/Derroche/post_derroche", {
+            const response = await fetch("https://testoficinavirtual.aysam.com.ar/test/Derroche/post_derroche", {
                 method: "POST",
                 body: formData,
             });
