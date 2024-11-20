@@ -3,6 +3,8 @@ document.addEventListener("DOMContentLoaded", () => {
     const tipificacionSelect = document.getElementById("tipificacion");
     const domicilioInput = document.getElementById("domicilio");
     const formulario = document.getElementById("formulario");
+    const fileInput = document.getElementById("foto");
+    
 
     // Simula obtener datos desde una API
     async function fetchFromAPI(endpoint) {
@@ -69,29 +71,30 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Función de validación para el campo de archivo
     function validarArchivo(inputFile) {
-        const archivo = inputFile.files[0];
-        const tiposPermitidos = ['image/jpeg', 'image/png'];
-        const tamanioMaximo = 10 * 1024 * 1024; // 10MB
-
+        const archivo = inputFile.files[0]; // Obtener el archivo cargado
+        const tiposPermitidos = ["image/jpeg", "image/png"];
+        const tamanioMaximo = 10 * 1024 * 1024; // 10 MB
+    
+        // Si no se seleccionó un archivo, no es un error
         if (!archivo) {
-            alert("Por favor, selecciona un archivo.");
-            return false;
+            return true; // Archivo no es obligatorio, continuar
         }
-
+    
         // Validar tipo de archivo
         if (!tiposPermitidos.includes(archivo.type)) {
             alert("El archivo debe ser JPG, JPEG o PNG.");
             return false;
         }
-
+    
         // Validar tamaño de archivo
         if (archivo.size > tamanioMaximo) {
             alert("El archivo no puede superar los 10MB.");
             return false;
         }
-
-        return true;
+    
+        return true; // Todo está bien
     }
+    
 
     // Validación para el campo de domicilio (sin caracteres especiales)
     function validarDomicilio(inputDomicilio) {
@@ -106,57 +109,58 @@ document.addEventListener("DOMContentLoaded", () => {
         return true;
     }
 
-    // Función principal de validación al enviar el formulario
-    function validarFormulario() {
-        const archivoInput = document.getElementById('foto');
-        const domicilioInput = document.getElementById('domicilio');
-
-        if (!validarArchivo(archivoInput)) {
-            return false;
-        }
-
-        if (!validarDomicilio(domicilioInput)) {
-            return false;
-        }
-
-        return true;
-    }
-
-    // Manejo del envío del formulario
     formulario.addEventListener("submit", async (e) => {
         e.preventDefault(); // Prevenir el comportamiento por defecto del formulario
-
+    
         // Validar el formulario antes de enviar
-        if (!validarFormulario()) {
-            return; // Si la validación falla, no enviar el formulario
+        const archivoInput = document.getElementById("foto");
+        if (!validarArchivo(archivoInput)) {
+            return; // Detener el envío si no es válido
         }
-
-        // Obtener los datos directamente desde los elementos del formulario
-        const departamento = document.getElementById("departamento").value;
-        const tipificacion = document.getElementById("tipificacion").value;
-        const hora = document.getElementById("hora").value ? document.getElementById("hora").value.replace(":", "") : null; // Convertir HH:MM a HHMM
-        const domicilio = document.getElementById("domicilio").value;
-        const foto = document.getElementById("foto").files[0]; // Seleccionar el archivo cargado (opcional)
-
-        // Crear un objeto FormData para enviar los datos del formulario y el archivo
+    
+        // Crear un objeto FormData
         const formData = new FormData();
-        formData.append("p_dep_codigo", departamento);
-        formData.append("p_tpf_id", tipificacion);
-        formData.append("p_hora", hora);
-        formData.append("p_domicilio", domicilio);
-        if (foto) {
-            formData.append("p_foto", foto); // Agregar el archivo
+    
+        // Agregar los demás campos al FormData
+        formData.append("p_dep_codigo", document.getElementById("departamento").value); // Número
+        formData.append("p_tpf_id", document.getElementById("tipificacion").value); // Número
+        formData.append("p_hora", document.getElementById("hora").value.replace(":", "") || null); // String (o null)
+        formData.append("p_domicilio", document.getElementById("domicilio").value); // String
+    
+        // Si hay un archivo, primero lo subimos y luego enviamos solo el nombre del archivo a la base de datos
+        const fotoInput = document.getElementById('foto');
+        if (fotoInput.files.length > 0) {
+            const file = fotoInput.files[0];
+    
+            // Crear un objeto FormData para enviar el archivo (puedes ajustarlo según la ruta que te devuelva la API)
+            const fileFormData = new FormData();
+            fileFormData.append("file", file);  // Aquí envías el archivo completo
+    
+            // Enviar el archivo a la API para obtener el nombre del archivo
+            const fileResponse = await fetch("http://localhost:5000/upload", {
+                method: "POST",
+                body: fileFormData
+            });
+    
+            if (fileResponse.ok) {
+                const fileData = await fileResponse.json(); // Respuesta de la API
+                const filename = fileData.filename; // Obtener el nombre del archivo
+                formData.append("p_foto", filename);  // Enviar solo el nombre del archivo a la base de datos
+            } else {
+                alert("Error al subir el archivo");
+                return;
+            }
         }
-
-        // Enviar los datos mediante POST usando FormData
+    
         try {
+            // Enviar el formulario con el nombre del archivo
             const response = await fetch("http://10.10.0.238:8080/ords/manantial/Derroche/post_derroche", {
                 method: "POST",
-                body: formData // Usamos el objeto FormData
+                body: formData,
             });
-
+    
             if (response.ok) {
-                const result = await response.json();
+                const result = await response.text(); 
                 console.log("Respuesta de la API:", result);
                 alert("Formulario enviado con éxito");
             } else {
@@ -169,4 +173,6 @@ document.addEventListener("DOMContentLoaded", () => {
             alert("Ocurrió un error inesperado al enviar el formulario.");
         }
     });
+    
+
 });
