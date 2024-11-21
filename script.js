@@ -150,9 +150,9 @@ document.addEventListener("DOMContentLoaded", () => {
             fileFormData.append("file", file);  // Aquí envías el archivo completo
     
             // Enviar el archivo a la API para obtener el nombre del archivo
-            const fileResponse = await fetch("http://localhost:5000/upload", {
+            const fileResponse = await fetch("http://127.0.0.1:8000/upload", {
                 method: "POST",
-                body: fileFormData
+                body: fileFormData,
             });
     
             if (fileResponse.ok) {
