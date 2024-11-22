@@ -1,50 +1,57 @@
-from fastapi import FastAPI, File, UploadFile, Form, HTTPException
-from fastapi.middleware.cors import CORSMiddleware  # Importamos CORSMiddleware desde FastAPI
+from fastapi import FastAPI, File, UploadFile, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 import os
 from pathlib import Path
+from datetime import datetime  # Importar datetime para fecha y hora
 
 # Configuración
-UPLOAD_FOLDER = Path("//sc014/TEST/GV")
+UPLOAD_FOLDER = Path("//Sc014/TEST/GV")
 ALLOWED_EXTENSIONS = {'jpg', 'jpeg', 'png'}
 
 app = FastAPI()
 
-origins = [ "http://127.0.0.1:8000",
-            "http://127.0.0.1:5500",
-            "http://localhost",
-            "http://localhost:8080",
-        ]
-methods=["POST"]
-headers=["*"]
+# Configuración CORS
+origins = ["*"]  # Permitir todos los orígenes
+methods = ["POST"]
+headers = ["*"]
 
-# Agregar CORS middleware de FastAPI
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Permitir todos los orígenes durante el desarrollo (o ajustarlo a dominios específicos)
+    allow_origins=origins,
     allow_credentials=True,
-    allow_methods=["POST"],  # Permitir todos los métodos (GET, POST, PUT, DELETE, etc.)
-    allow_headers=["*"],  # Permitir todos los encabezados
+    allow_methods=methods,
+    allow_headers=headers,
 )
 
-# Función para verificar las extensiones permitidas
+# Función para verificar extensiones permitidas
 def allowed_file(filename: str) -> bool:
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 @app.post("/upload")
 async def upload_file(file: UploadFile = File(...)):
+    # Verificar si el archivo tiene una extensión permitida
     if not allowed_file(file.filename):
         raise HTTPException(status_code=400, detail="File type not allowed")
+    
+    # Extraer el nombre base del archivo y su extensión
     filename = os.path.basename(file.filename)
-    safe_filename = os.path.splitext(filename)[0].replace(" ", "_") + os.path.splitext(filename)[1]
-    filepath = UPLOAD_FOLDER / safe_filename
+    base_name, extension = os.path.splitext(filename)
 
+    # Obtener la fecha y hora actuales
+    current_datetime = datetime.now().strftime("%d%m%Y%H%M")
+
+    # Generar un nuevo nombre para el archivo
+    new_filename = f"{base_name}_{current_datetime}{extension}"
+    filepath = UPLOAD_FOLDER / new_filename
+    
     try:
+        # Guardar el archivo en el sistema
         with open(filepath, "wb") as f:
             f.write(await file.read())
 
         return JSONResponse(content={
-            "filename": safe_filename,
+            "filename": new_filename,
             "filepath": str(filepath)
         }, status_code=200)
 
