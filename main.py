@@ -39,10 +39,10 @@ async def upload_file(file: UploadFile = File(...)):
     base_name, extension = os.path.splitext(filename)
 
     # Reemplazar espacios en el nombre del archivo
-    safe_base_name = base_name.replace(" ", "_")
+    #safe_base_name = base_name.replace(" ", "_")
     
     # Obtener la fecha y hora actuales
-    current_datetime = datetime.now().strftime("%d-%m-%Y_%H-%M")
+    current_datetime = datetime.now().strftime("%d%m%Y%H%M")
     
     # Concatenar fecha y hora al nombre del archivo
     new_filename = f"{safe_base_name}_{current_datetime}{extension}"
