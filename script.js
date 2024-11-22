@@ -141,15 +141,6 @@ document.addEventListener("DOMContentLoaded", () => {
             return true;
         }
 
-
-
-
-
-
-
-
-
-
      // Función para abrir el modal con un mensaje y cerrarlo automáticamente
     function openModal(message, autoClose = true, closeAfter = 3000) { // Por defecto, cierra tras 3 segundos
         const modalMessage = document.getElementById("modalMessage");
@@ -182,10 +173,6 @@ document.addEventListener("DOMContentLoaded", () => {
     };
 
 
-
-
-
-
     const overlay = document.getElementById("overlay");
 
     formulario.addEventListener("submit", async (e) => {
@@ -202,7 +189,19 @@ document.addEventListener("DOMContentLoaded", () => {
             return; // Detener el envío si el domicilio no es válido
         }
 
+        const fechaInput = document.getElementById("fecha_infraccion").value;
 
+        if (!fechaInput) {
+            openModal("Debe seleccionar una fecha válida.");
+            return;
+        }
+
+        // Dividir la fecha manualmente (suponiendo formato 'YYYY-MM-DD' en el input)
+        const [anio, mes, dia] = fechaInput.split('-');
+
+        // Formatear la fecha como DD/MM/YY
+        const fechaFormateada = `${dia}/${mes}/${anio}`;
+        console.log("Fecha formateada para enviar:", fechaFormateada);
         
          // Muestra el overlay
         overlay.classList.remove("hidden");
@@ -214,12 +213,13 @@ document.addEventListener("DOMContentLoaded", () => {
         formData.append("p_dep_codigo", document.getElementById("departamento").value); // Número
         formData.append("p_tpf_id", document.getElementById("tipificacion").value); // Número
         formData.append("p_hora", document.getElementById("hora").value.replace(":", "") || null); // String (o null)
-        formData.append("p_fecha", document.getElementById("fecha_infraccion").value); 
+        //formData.append("p_fecha", document.getElementById("fecha_infraccion").value);
+        formData.append("p_fecha", fechaFormateada); 
         formData.append("p_calle",document.getElementById("calle").value);
         formData.append("p_numero",document.getElementById("numero").value);
         formData.append("p_barrio",document.getElementById("barrio").value);
-        formData.append("p_manzana",document.getElementById("mza").value);
         formData.append("p_casa",document.getElementById("ca").value);
+        formData.append("p_manzana",document.getElementById("mza").value);
     
         // Si hay un archivo, primero lo subimos y luego enviamos solo el nombre del archivo a la base de datos
         const fotoInput = document.getElementById('foto');
@@ -252,6 +252,11 @@ document.addEventListener("DOMContentLoaded", () => {
                 method: "POST",
                 body: formData,
             });
+            for (let pair of formData.entries()) {
+                console.log(`${pair[0]}: ${pair[1]}`);
+            }
+
+
     
             if (response.ok) {
                 const result = await response.text(); 
@@ -271,6 +276,4 @@ document.addEventListener("DOMContentLoaded", () => {
             overlay.classList.add("hidden");
         }
     });
-    
-
 });

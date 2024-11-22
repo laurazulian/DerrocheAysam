@@ -3,18 +3,15 @@ from fastapi.middleware.cors import CORSMiddleware  # Importamos CORSMiddleware 
 from fastapi.responses import JSONResponse
 import os
 from pathlib import Path
+from datetime import datetime
 
 # Configuración
-UPLOAD_FOLDER = Path("//sc014/TEST/GV")
+UPLOAD_FOLDER = Path("//Sc014/TEST/GV")
 ALLOWED_EXTENSIONS = {'jpg', 'jpeg', 'png'}
 
 app = FastAPI()
 
-origins = [ "http://127.0.0.1:8000",
-            "http://127.0.0.1:5500",
-            "http://localhost",
-            "http://localhost:8080",
-        ]
+origins = ["*"]
 methods=["POST"]
 headers=["*"]
 
@@ -27,24 +24,37 @@ app.add_middleware(
     allow_headers=["*"],  # Permitir todos los encabezados
 )
 
-# Función para verificar las extensiones permitidas
+# Función para verificar extensiones permitidas
 def allowed_file(filename: str) -> bool:
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 @app.post("/upload")
 async def upload_file(file: UploadFile = File(...)):
+    # Verificar si el archivo tiene una extensión permitida
     if not allowed_file(file.filename):
         raise HTTPException(status_code=400, detail="File type not allowed")
+    
+    # Extraer el nombre base del archivo y su extensión
     filename = os.path.basename(file.filename)
-    safe_filename = os.path.splitext(filename)[0].replace(" ", "_") + os.path.splitext(filename)[1]
-    filepath = UPLOAD_FOLDER / safe_filename
+    base_name, extension = os.path.splitext(filename)
 
+    # Reemplazar espacios en el nombre del archivo
+    safe_base_name = base_name.replace(" ", "_")
+    
+    # Obtener la fecha y hora actuales
+    current_datetime = datetime.now().strftime("%d-%m-%Y_%H-%M")
+    
+    # Concatenar fecha y hora al nombre del archivo
+    new_filename = f"{safe_base_name}_{current_datetime}{extension}"
+    filepath = UPLOAD_FOLDER / new_filename
+    
     try:
+        # Guardar el archivo en el sistema
         with open(filepath, "wb") as f:
             f.write(await file.read())
 
         return JSONResponse(content={
-            "filename": safe_filename,
+            "filename": new_filename,
             "filepath": str(filepath)
         }, status_code=200)
 
