@@ -1,7 +1,6 @@
 document.addEventListener("DOMContentLoaded", () => {
     const departamentoSelect = document.getElementById("departamento");
     const tipificacionSelect = document.getElementById("tipificacion");
-    const domicilioInput = document.getElementById("domicilio");
     const formulario = document.getElementById("formulario");
     const fileInput = document.getElementById("foto");
     
@@ -54,7 +53,7 @@ document.addEventListener("DOMContentLoaded", () => {
             const data = await response.json();
             const tipificaciones = data.items;
     
-            tipificacionSelect.innerHTML = '<option value="">Seleccione una tipificación</option>';
+            tipificacionSelect.innerHTML = '<option value="">Seleccione un motivo</option>';
     
             tipificaciones.forEach(tip => {
                 const option = document.createElement("option");
@@ -82,40 +81,40 @@ document.addEventListener("DOMContentLoaded", () => {
     
         // Validar tipo de archivo
         if (!tiposPermitidos.includes(archivo.type)) {
-            alert("El archivo debe ser JPG, JPEG o PNG.");
+            openModal("El archivo debe ser JPG, JPEG o PNG.");
             return false;
         }
     
         // Validar tamaño de archivo
         if (archivo.size > tamanioMaximo) {
-            alert("El archivo no puede superar los 10MB.");
+            openModal("El archivo no puede superar los 10MB.");
             return false;
         }
     
         return true; // Todo está bien
     }
     
-
-    // Validación para el campo de domicilio (sin caracteres especiales)
-    // Validación para el campo de domicilio (sin caracteres especiales)
-    function validarDomicilio(inputDomicilio) {
+/*
+      // Validación para el campo de domicilio (sin caracteres especiales)
+      function validarDomicilio(inputDomicilio) {
         const domicilio = inputDomicilio.value;
         const regexDomicilio = /^[a-zA-Z0-9\s,.-]*$/;  // Permite solo letras, números, espacio, coma, punto y guion.
     
         // Validación de caracteres permitidos
         if (!regexDomicilio.test(domicilio)) {
-            alert("El domicilio no puede contener caracteres especiales.");
+            openModal("El domicilio no puede contener caracteres especiales.");
             return false;
         }
     
         // Validación de longitud máxima de 150 caracteres
         if (domicilio.length > 150) {
-            alert("El domicilio no puede superar los 150 caracteres.");
+            openModal("El domicilio no puede superar los 150 caracteres.");
             return false;
         }
     
         return true;
     }
+
 
     formulario.addEventListener("submit", async (e) => {
         e.preventDefault(); // Prevenir el comportamiento por defecto del formulario
@@ -125,14 +124,11 @@ document.addEventListener("DOMContentLoaded", () => {
         if (!validarArchivo(archivoInput)) {
             return; // Detener el envío si no es válido
         }
-
-        
-    const domicilioInput = document.getElementById("domicilio");
+        const domicilioInput = document.getElementById("domicilio");
         if (!validarDomicilio(domicilioInput)) {
-        return; // Detener el envío si el domicilio no es válido
-    }
+            return; // Detener el envío si el domicilio no es válido
+        }
 
-    
         // Crear un objeto FormData
         const formData = new FormData();
     
@@ -140,7 +136,13 @@ document.addEventListener("DOMContentLoaded", () => {
         formData.append("p_dep_codigo", document.getElementById("departamento").value); // Número
         formData.append("p_tpf_id", document.getElementById("tipificacion").value); // Número
         formData.append("p_hora", document.getElementById("hora").value.replace(":", "") || null); // String (o null)
-        formData.append("p_domicilio", document.getElementById("domicilio").value); // String
+        //formData.append("p_fecha", document.getElementById("fecha_infraccion").value);
+        formData.append("p_fecha", fechaFormateada); 
+        formData.append("p_calle",document.getElementById("calle").value);
+        formData.append("p_numero",document.getElementById("numero").value);
+        formData.append("p_barrio",document.getElementById("barrio").value);
+        formData.append("p_casa",document.getElementById("ca").value);
+        formData.append("p_manzana",document.getElementById("mza").value);
     
         // Si hay un archivo, primero lo subimos y luego enviamos solo el nombre del archivo a la base de datos
         const fotoInput = document.getElementById('foto');
@@ -152,9 +154,9 @@ document.addEventListener("DOMContentLoaded", () => {
             fileFormData.append("file", file);  // Aquí envías el archivo completo
     
             // Enviar el archivo a la API para obtener el nombre del archivo
-            const fileResponse = await fetch("http://localhost:5000/upload", {
+            const fileResponse = await fetch("http://127.0.0.1:8000/upload", {
                 method: "POST",
-                body: fileFormData
+                body: fileFormData,
             });
     
             if (fileResponse.ok) {
@@ -162,32 +164,39 @@ document.addEventListener("DOMContentLoaded", () => {
                 const filename = fileData.filename; // Obtener el nombre del archivo
                 formData.append("p_foto", filename);  // Enviar solo el nombre del archivo a la base de datos
             } else {
-                alert("Error al subir el archivo");
+                openModal("Error al subir el archivo");
                 return;
             }
         }
     
         try {
             // Enviar el formulario con el nombre del archivo
-            const response = await fetch("https://testoficinavirtual.aysam.com.ar/test/Derroche/post_derroche", {
+            const response = await fetch("https://testoficinavirtual.aysam.com.ar/test/Derroche/post_derroche", {   
                 method: "POST",
                 body: formData,
             });
+            for (let pair of formData.entries()) {
+                console.log(`${pair[0]}: ${pair[1]}`);
+            }
+
+
     
             if (response.ok) {
                 const result = await response.text(); 
-                console.log("Respuesta de la API:", result);
-                alert("Formulario enviado con éxito");
+                //console.log("Respuesta de la API:", result);
+                openModal("Gracias. Su denuncia ha sido registrada.");
+                formulario.reset();
             } else {
                 const error = await response.text();
-                console.error("Error en la respuesta:", error);
-                alert("Hubo un problema al enviar los datos. Verifica tu información.");
+                //console.error("Error en la respuesta:", error);
+                openModal("Hubo un problema al enviar los datos. Verifica tu información.");
             }
         } catch (error) {
-            console.error("Error al enviar los datos:", error);
-            alert("Ocurrió un error inesperado al enviar el formulario.");
+            //console.error("Error al enviar los datos:", error);
+            openModal("Ocurrió un error inesperado al enviar el formulario.");
+         } finally {
+            // Oculta el overlay
+            overlay.classList.add("hidden");
         }
     });
-    
-
 });
