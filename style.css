@@ -230,5 +230,58 @@ button[type="submit"]:hover {
 
 
 
+/* Estilos para el logo */
+#logo {
+    width: 20vw; /* Hace que el logo ocupe un 20% del ancho de la ventana */
+    max-width: 250px; /* Establece un tamaño máximo para el logo */
+    height: auto; /* Mantiene la proporción del logo */
+    display: block;
+    margin-left: 20px;
+    margin-top: 10px;
+}
+
+/* Media Queries para pantallas pequeñas (por ejemplo, móviles) */
+@media (max-width: 600px) {
+    #logo {
+        width: 50vw; /* En pantallas pequeñas, el logo ocupa un 30% del ancho de la ventana */
+        max-width: 400px; /* Tamaño máximo para pantallas pequeñas */
+    }
+    #formulario {
+        margin: 20px auto;
+    }
+   
+}
+
+/* Media Queries para pantallas muy grandes */
+@media (min-width: 1200px) {
+    #logo {
+        width: 35vw; /* En pantallas grandes, el logo ocupa un 15% del ancho de la ventana */
+        max-width: 400px; /* Tamaño máximo para pantallas grandes */
+        margin-top: 10px;
+    }
+    #formulario {
+        margin: 20px auto;
+    }
+    .section-background {
+        padding: 0;
+    }
+
+}
+
+
+
+
+header {
+  background-color: #0074A1; /* Fondo azul, igual al del formulario */
+  padding: 10px 0;
+  overflow: auto; /* Asegura que el contenido del header se ajuste */
+  display: flex; /* Usamos flexbox para el centrado */
+  justify-content: center; /* Centra el logo horizontalmente */
+  align-items: center; /* Centra el logo verticalmente si es necesario */
+
+}
+
+
+
 
 
