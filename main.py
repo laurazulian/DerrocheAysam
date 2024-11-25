@@ -1,12 +1,15 @@
 from fastapi import FastAPI, File, UploadFile, Form, HTTPException
 from fastapi.middleware.cors import CORSMiddleware  # Importamos CORSMiddleware desde FastAPI
 from fastapi.responses import JSONResponse
+from smb.SMBConnection import SMBConnection
+from io import BytesIO
 import os
 from pathlib import Path
 from datetime import datetime
 
 # Configuración
-UPLOAD_FOLDER = Path("//Sc014/TEST/GV")
+#UPLOAD_FOLDER = Path("//Sc014/TEST/GV")
+UPLOAD_FOLDER = Path("//10.10.0.239/Fotos")
 ALLOWED_EXTENSIONS = {'jpg', 'jpeg', 'png'}
 
 app = FastAPI()
@@ -45,7 +48,7 @@ async def upload_file(file: UploadFile = File(...)):
     current_datetime = datetime.now().strftime("%d%m%Y%H%M")
     
     # Concatenar fecha y hora al nombre del archivo
-    new_filename = f"{safe_base_name}_{current_datetime}{extension}"
+    new_filename = "{safe_base_name}_{current_datetime}{extension}"
     filepath = UPLOAD_FOLDER / new_filename
     
     try:
