@@ -3,6 +3,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const tipificacionSelect = document.getElementById("tipificacion");
     const formulario = document.getElementById("formulario");
     const fileInput = document.getElementById("foto");
+    const overlay = document.getElementById("overlay");
     
 
     // Simula obtener datos desde una API
@@ -68,121 +69,196 @@ document.addEventListener("DOMContentLoaded", () => {
     
     loadTipificaciones();
 
-    // Función de validación para el campo de archivo
-    function validarArchivo(inputFile) {
-        const archivo = inputFile.files[0]; // Obtener el archivo cargado
-        const tiposPermitidos = ["image/jpeg", "image/png"];
-        const tamanioMaximo = 10 * 1024 * 1024; // 10 MB
-    
-        // Si no se seleccionó un archivo, no es un error
-        if (!archivo) {
-            return true; // Archivo no es obligatorio, continuar
-        }
-    
-        // Validar tipo de archivo
-        if (!tiposPermitidos.includes(archivo.type)) {
-            openModal("El archivo debe ser JPG, JPEG o PNG.");
-            return false;
-        }
-    
-        // Validar tamaño de archivo
-        if (archivo.size > tamanioMaximo) {
-            openModal("El archivo no puede superar los 10MB.");
-            return false;
-        }
-    
-        return true; // Todo está bien
-    }
-    
-/*
-      // Validación para el campo de domicilio (sin caracteres especiales)
-      function validarDomicilio(inputDomicilio) {
-        const domicilio = inputDomicilio.value;
-        const regexDomicilio = /^[a-zA-Z0-9\s,.-]*$/;  // Permite solo letras, números, espacio, coma, punto y guion.
-    
-        // Validación de caracteres permitidos
-        if (!regexDomicilio.test(domicilio)) {
-            openModal("El domicilio no puede contener caracteres especiales.");
-            return false;
-        }
-    
-        // Validación de longitud máxima de 150 caracteres
-        if (domicilio.length > 150) {
-            openModal("El domicilio no puede superar los 150 caracteres.");
-            return false;
-        }
-    
-        return true;
-    }
-*/
-
-        function validarDomicilio() {
-            const calle = document.getElementById("calle").value.trim();
-            const numero = document.getElementById("numero").value.trim();
-            const manzana = document.getElementById("mza").value.trim();
-            const casa = document.getElementById("ca").value.trim();
+    // Función para abrir el modal con un mensaje y cerrarlo automáticamente
+        function openModal(message, autoClose = true, closeAfter = 3000) { // Por defecto, cierra tras 3 segundos
+            const modalMessage = document.getElementById("modalMessage");
+            const messageModal = document.getElementById("messageModal");
             
-            // Validación: Si hay calle, debe haber número o (manzana y casa)
-            if (calle) {
-                // Si hay calle y no hay número, debe haber manzana y casa
-                if (!numero && !(manzana && casa)) {
-                    openModal("Si se ingresa una calle, debe ingresar un número o una manzana y una casa.");
-                    return false;
-                }
-            }
+            modalMessage.textContent = message;
+            messageModal.style.display = "block";
 
-            // Validación: Si hay manzana, debe haber casa
-            if (manzana && !casa) {
-                openModal("Si se ingresa una manzana, debe ingresar una casa.");
-                return false;
+            // Cerrar automáticamente el modal si está habilitado
+            if (autoClose) {
+                setTimeout(() => {
+                    messageModal.style.display = "none";
+                }, closeAfter);
             }
-
-            // Si pasa todas las validaciones, retornamos true
-            return true;
         }
 
-     // Función para abrir el modal con un mensaje y cerrarlo automáticamente
-    function openModal(message, autoClose = true, closeAfter = 3000) { // Por defecto, cierra tras 3 segundos
-        const modalMessage = document.getElementById("modalMessage");
-        const messageModal = document.getElementById("messageModal");
-        
-        modalMessage.textContent = message;
-        messageModal.style.display = "block";
+        // Función para cerrar el modal manualmente
+        const modalClose = document.getElementById("modalClose");
+        modalClose.onclick = function () {
+            const messageModal = document.getElementById("messageModal");
+            messageModal.style.display = "none";
+        };
 
-        // Cerrar automáticamente el modal si está habilitado
-        if (autoClose) {
-            setTimeout(() => {
+        // Cierra el modal si se hace clic fuera de la ventana
+        window.onclick = function (event) {
+            const messageModal = document.getElementById("messageModal");
+            if (event.target == messageModal) {
                 messageModal.style.display = "none";
-            }, closeAfter);
-        }
+            }
+        };    
+        
+// Función principal para validar el formulario antes de enviarlo
+function validarFormulario() {
+    // Validar archivo
+    const archivoInput = document.getElementById("foto");
+    if (!validarArchivo(archivoInput)) {
+        return; // Detener el envío si no es válido
     }
 
-    // Función para cerrar el modal manualmente
-    const modalClose = document.getElementById("modalClose");
-    modalClose.onclick = function () {
-        const messageModal = document.getElementById("messageModal");
-        messageModal.style.display = "none";
-    };
+    // Validar domicilio
+    const domicilioInput = document.getElementById("domicilio");
+    if (!validarDomicilio(domicilioInput)) {
+        return; // Detener el envío si el domicilio no es válido
+    }
 
-    // Cierra el modal si se hace clic fuera de la ventana
-    window.onclick = function (event) {
-        const messageModal = document.getElementById("messageModal");
-        if (event.target == messageModal) {
-            messageModal.style.display = "none";
+    // Validar número
+    const numeroInput = document.getElementById("numero");
+    if (!validarNumero(numeroInput)) return;
+
+    // Validar manzana
+    const manzanaInput = document.getElementById("mza");
+    if (!validarManzana(manzanaInput)) return;
+
+    // Validar calle (sin caracteres especiales)
+    const calleInput = document.getElementById("calle");
+    if (!validarSinCaracteresEspeciales(calleInput)) return;
+
+    // Validar barrio (sin caracteres especiales)
+    const barrioInput = document.getElementById("barrio");
+    if (!validarSinCaracteresEspeciales(barrioInput)) return;
+
+    // Aquí puedes agregar cualquier otra validación que necesites
+}
+
+// Función para validar campos sin caracteres especiales
+function validarSinCaracteresEspeciales(input) {
+    const regex = /^[a-zA-Z0-9\s]*$/;  // Permite letras, números y espacios
+    if (!regex.test(input.value)) {
+        openModal("Ningún campo puede contener caracteres especiales.");
+        return false;
+    }
+    return true; // Retorna true si pasa la validación
+}
+
+// Función para validar que el campo contenga solo números
+function validarNumero(input) {
+    console.log("Elemento input recibido:", input); // Verificar el objeto input
+    const valor = input.trim(); // Usar directamente el input si es un string
+    const regex = /^[0-9]*$/; // Permite números vacíos o números
+
+    if (valor && !regex.test(valor)) { // Validar el contenido
+        openModal("El número solo puede contener dígitos.");
+        return false;
+    }
+    return true; // Retorna true si pasa la validación
+}
+
+    function validarManzana(input) {
+        const valor = input.trim(); // Elimina espacios
+        const regex = /^[a-zA-Z]{1}$/; // Solo una letra
+        if (valor && !regex.test(valor)) {
+            openModal("La manzana debe ser una sola letra.");
+            return false;
         }
-    };
+        return true; // Retorna true si pasa la validación o está vacío
+    }
 
 
-    const overlay = document.getElementById("overlay");
+// Función para validar el archivo cargado
+function validarArchivo(inputFile) {
+    const archivo = inputFile.files[0]; // Obtener el archivo cargado
+    const tiposPermitidos = ["image/jpeg", "image/png", "image/jpg"];
+    const tamanioMaximo = 10 * 1024 * 1024; // 10 MB
+    
+    // Si no se seleccionó un archivo, no es un error
+    if (!archivo) {
+        return true; // Archivo no es obligatorio, continuar
+    }
 
+    // Validar tipo de archivo
+    if (!tiposPermitidos.includes(archivo.type)) {
+        openModal("El archivo debe ser JPG, JPEG o PNG.");
+        return false;
+    }
+
+    // Validar tamaño de archivo
+    if (archivo.size > tamanioMaximo) {
+        openModal("El archivo no puede superar los 10MB.");
+        return false;
+    }
+
+    return true; // Todo está bien
+}
+
+// Función para validar el domicilio
+function validarDomicilio() {
+    const calle = document.getElementById("calle").value.trim();
+    const numero = document.getElementById("numero").value.trim();
+    const manzana = document.getElementById("mza").value.trim();
+    const casa = document.getElementById("ca").value.trim();
+    const barrio = document.getElementById("barrio").value.trim();
+
+
+      // Verificar si se cumple la primera combinación (calle y número)
+      const tieneCalleYNumero = calle && numero;
+
+      // Verificar si se cumple la segunda combinación (barrio, manzana y casa)
+      const tieneBarrioManzanaCasa = barrio && manzana && casa;
+  
+      // Validar que se cumpla al menos una combinación
+      if (!tieneCalleYNumero && !tieneBarrioManzanaCasa) {
+          openModal("Debe completar Calle y Número o Barrio, Manzana y Casa.");
+          return false;
+      }
+
+    // Validación: Si se ingresa número, debe haber calle
+    if (numero && !calle) {
+        openModal("Si se ingresa un número, debe ingresar una calle.");
+        return false;
+    }
+
+    // Validación: Si se ingresa manzana, debe haber casa
+    if (manzana && !casa) {
+        openModal("Si se ingresa una manzana, debe ingresar una casa.");
+        return false;
+    }
+
+    // Validación: Si se ingresa casa, debe haber manzana
+    if (casa && !manzana) {
+        openModal("Si se ingresa una casa, debe ingresar una manzana.");
+        return false;
+    }
+
+    // Validación: Si se ingresa manzana o casa, debe haber barrio
+    if ((manzana || casa) && !barrio) {
+        openModal("Si se ingresa una manzana o una casa, debe ingresar un barrio.");
+        return false;
+    }
+
+    // Validación: Si se ingresa calle, se requiere número, pero solo si no hay manzana ni casa
+    if (calle && !numero && !manzana && !casa) {
+        openModal("Si se ingresa una calle, debe ingresar un número.");
+        return false;
+    }
+
+    // Si pasa todas las validaciones, retornamos true
+    return true;
+}
+   
+    
     formulario.addEventListener("submit", async (e) => {
         e.preventDefault(); // Prevenir el comportamiento por defecto del formulario
-    
-        // Validar el formulario antes de enviar
-        const archivoInput = document.getElementById("foto");
+
+
+      
+       // Validar el formulario antes de enviar
+        /*const archivoInput = document.getElementById("foto");
         if (!validarArchivo(archivoInput)) {
             return; // Detener el envío si no es válido
-        }
+        }*/
 
         const domicilioInput = document.getElementById("domicilio");
         if (!validarDomicilio(domicilioInput)) {
@@ -201,12 +277,19 @@ document.addEventListener("DOMContentLoaded", () => {
 
         // Formatear la fecha como DD/MM/YY
         const fechaFormateada = `${dia}/${mes}/${anio}`;
-        console.log("Fecha formateada para enviar:", fechaFormateada);
-        
-         // Muestra el overlay
-        overlay.classList.remove("hidden");
+        //console.log("Fecha formateada para enviar:", fechaFormateada);
 
-        // Crear un objeto FormData
+        const numeroInput = document.getElementById("numero").value;
+        console.log("antes",numeroInput)
+        const manzanaInput = document.getElementById("mza").value.trim();
+        const calleInput = document.getElementById("calle").value.trim();
+        const barrioInput = document.getElementById("barrio").value.trim();
+
+        if (!validarNumero(numeroInput)) return;
+        if (!validarManzana(manzanaInput)) return;
+        if (!validarSinCaracteresEspeciales(calleInput)) return;
+        if (!validarSinCaracteresEspeciales(barrioInput)) return;
+        
         const formData = new FormData();
     
         // Agregar los demás campos al FormData
@@ -247,6 +330,8 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     
         try {
+
+            overlay.classList.remove("hidden");
             // Enviar el formulario con el nombre del archivo
             const response = await fetch("https://testoficinavirtual.aysam.com.ar/test/Derroche/post_derroche", {   
                 method: "POST",
@@ -255,7 +340,6 @@ document.addEventListener("DOMContentLoaded", () => {
             for (let pair of formData.entries()) {
                 console.log(`${pair[0]}: ${pair[1]}`);
             }
-
 
     
             if (response.ok) {
