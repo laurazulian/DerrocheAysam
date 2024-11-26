@@ -209,11 +209,7 @@ function validarDomicilio() {
       const tieneBarrioManzanaCasa = barrio && manzana && casa;
   
       // Validar que se cumpla al menos una combinación
-      if (!tieneCalleYNumero && !tieneBarrioManzanaCasa) {
-          openModal("Debe completar Calle y Número o Barrio, Manzana y Casa.");
-          return false;
-      }
-
+    
     // Validación: Si se ingresa número, debe haber calle
     if (numero && !calle) {
         openModal("Si se ingresa un número, debe ingresar una calle.");
@@ -243,6 +239,12 @@ function validarDomicilio() {
         openModal("Si se ingresa una calle, debe ingresar un número.");
         return false;
     }
+
+    if (!tieneCalleYNumero && !tieneBarrioManzanaCasa) {
+        openModal("Debe completar Calle y Número o Barrio, Manzana y Casa.");
+        return false;
+    }
+
 
     // Si pasa todas las validaciones, retornamos true
     return true;
