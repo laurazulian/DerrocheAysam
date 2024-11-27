@@ -19,7 +19,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     async function loadDepartamentos() {
         try {
-            const response = await fetch("https://testoficinavirtual.aysam.com.ar/test/Derroche/get_departamentos");
+            const response = await fetch("https://api.aysam.com.ar/test/Derroche/v1/get_departamentos");
             if (!response.ok) {
                 throw new Error(`Error HTTP: ${response.status}`);
             }
@@ -45,7 +45,7 @@ document.addEventListener("DOMContentLoaded", () => {
     // Carga datos en el select de tipificación
     async function loadTipificaciones() {
         try {
-            const response = await fetch("https://testoficinavirtual.aysam.com.ar/test/Derroche/get_tpf_derroche");
+            const response = await fetch("https://api.aysam.com.ar/test/Derroche/v1/get_tpf_derroche");
             
             if (!response.ok) {
                 throw new Error(`Error HTTP: ${response.status}`);
@@ -156,15 +156,16 @@ function validarNumero(input) {
     return true; // Retorna true si pasa la validación
 }
 
-    function validarManzana(input) {
-        const valor = input.trim(); // Elimina espacios
-        const regex = /^[a-zA-Z]{1}$/; // Solo una letra
-        if (valor && !regex.test(valor)) {
-            openModal("La manzana debe ser una sola letra.");
-            return false;
-        }
-        return true; // Retorna true si pasa la validación o está vacío
+function validarManzana(input) {
+    const valor = input.trim(); // Elimina espacios
+    const regex = /^[a-zA-Z0-9]{1,2}$/; // Permite entre 1 y 2 letras o números
+    if (valor && !regex.test(valor)) {
+        openModal("La manzana debe contener entre 1 y 2 letras o números.");
+        return false;
     }
+    return true; // Retorna true si pasa la validación o está vacío
+}
+
 
 // Función para validar el archivo cargado
 function validarArchivo(inputFile) {
@@ -199,6 +200,7 @@ function validarDomicilio() {
     const manzana = document.getElementById("mza").value.trim();
     const casa = document.getElementById("ca").value.trim();
     const barrio = document.getElementById("barrio").value.trim();
+
 
       // Verificar si se cumple la primera combinación (calle y número)
       const tieneCalleYNumero = calle && numero;
@@ -243,6 +245,7 @@ function validarDomicilio() {
         return false;
     }
 
+
     // Si pasa todas las validaciones, retornamos true
     return true;
 }
@@ -250,6 +253,7 @@ function validarDomicilio() {
     
     formulario.addEventListener("submit", async (e) => {
         e.preventDefault(); // Prevenir el comportamiento por defecto del formulario
+
 
       
        // Validar el formulario antes de enviar
@@ -312,7 +316,7 @@ function validarDomicilio() {
             fileFormData.append("file", file);  // Aquí envías el archivo completo
     
             // Enviar el archivo a la API para obtener el nombre del archivo
-            const fileResponse = await fetch("http://127.0.0.1:8000/upload", {
+            const fileResponse = await fetch("https://api.aysam.com.ar/upload", {
                 method: "POST",
                 body: fileFormData,
             });
@@ -331,7 +335,7 @@ function validarDomicilio() {
 
             overlay.classList.remove("hidden");
             // Enviar el formulario con el nombre del archivo
-            const response = await fetch("https://testoficinavirtual.aysam.com.ar/test/Derroche/post_derroche", {   
+            const response = await fetch("https://api.aysam.com.ar/test/Derroche/v1/post_derroche", {   
                 method: "POST",
                 body: formData,
             });

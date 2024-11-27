@@ -8,10 +8,11 @@
     
 </head>
 <body>
+    
+   
     <div class="section-background">
+        
     <form id="formulario" enctype="multipart/form-data">
-        <input type="hidden" id="g-recaptcha-response" name="g-recaptcha-response">
-        <input type="hidden" name="action" value="validate_captcha">
         <h1>DERROCHE DE AGUA POTABLE</h1>
         
         <div class="form-group">
@@ -63,8 +64,7 @@
             <label for="foto">Adjuntar la foto</label>
             <input type="file" id="foto" name="foto" accept=".jpg,.jpeg,.png,">
         </div>
-        <div class="g-recaptcha" data-sitekey="6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI"></div>
-        <div id="error-captcha" class="error" style="display: none;"></div>
+        
         <button type="submit">Confirmar</button>
     </form>
 
@@ -84,17 +84,6 @@
 
     </div>
     <script src="script.js"></script>
-    <script src='https://www.google.com/recaptcha/api.js'></script>
-    <script>
-        function onClick(e) {
-          e.preventDefault();
-          grecaptcha.ready(function() {
-            grecaptcha.execute('6LeIxAcTAAAAAGG-vFI1TnRWxMZNFuojJ4WifJWe', {action: 'submit'}).then(function(token) {
-                // Add your logic to submit to your backend server here.
-            });
-          });
-        }
-    </script>
-  
+
 </body>
 </html>
