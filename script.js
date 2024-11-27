@@ -145,24 +145,26 @@ function validarSinCaracteresEspeciales(input) {
 
 // Función para validar que el campo contenga solo números
 function validarNumero(input) {
-    console.log("Valor del campo número:", input.value); // Verificar el valor
-    const regex = /^[0-9]*$/;  // Permite números vacíos o números
-    if (input.value.trim() && !regex.test(input.value)) {  // Si el campo no está vacío y no contiene solo números
+    console.log("Elemento input recibido:", input); // Verificar el objeto input
+    const valor = input.trim(); // Usar directamente el input si es un string
+    const regex = /^[0-9]*$/; // Permite números vacíos o números
+
+    if (valor && !regex.test(valor)) { // Validar el contenido
         openModal("El número solo puede contener dígitos.");
         return false;
     }
     return true; // Retorna true si pasa la validación
 }
 
-// Función para validar que la manzana sea solo una letra
-function validarManzana(input) {
-    const regex = /^[a-zA-Z]{1}$/;  // Solo una letra
-    if (!regex.test(input.value)) {
-        openModal("La manzana debe ser una sola letra.");
-        return false;
+    function validarManzana(input) {
+        const valor = input.trim(); // Elimina espacios
+        const regex = /^[a-zA-Z]{1}$/; // Solo una letra
+        if (valor && !regex.test(valor)) {
+            openModal("La manzana debe ser una sola letra.");
+            return false;
+        }
+        return true; // Retorna true si pasa la validación o está vacío
     }
-    return true; // Retorna true si pasa la validación
-}
 
 // Función para validar el archivo cargado
 function validarArchivo(inputFile) {
@@ -198,6 +200,14 @@ function validarDomicilio() {
     const casa = document.getElementById("ca").value.trim();
     const barrio = document.getElementById("barrio").value.trim();
 
+      // Verificar si se cumple la primera combinación (calle y número)
+      const tieneCalleYNumero = calle && numero;
+
+      // Verificar si se cumple la segunda combinación (barrio, manzana y casa)
+      const tieneBarrioManzanaCasa = barrio && manzana && casa;
+  
+      // Validar que se cumpla al menos una combinación
+    
     // Validación: Si se ingresa número, debe haber calle
     if (numero && !calle) {
         openModal("Si se ingresa un número, debe ingresar una calle.");
@@ -228,14 +238,18 @@ function validarDomicilio() {
         return false;
     }
 
+    if (!tieneCalleYNumero && !tieneBarrioManzanaCasa) {
+        openModal("Debe completar Calle y Número o Barrio, Manzana y Casa.");
+        return false;
+    }
+
     // Si pasa todas las validaciones, retornamos true
     return true;
 }
-
+   
     
     formulario.addEventListener("submit", async (e) => {
         e.preventDefault(); // Prevenir el comportamiento por defecto del formulario
-
 
       
        // Validar el formulario antes de enviar
@@ -261,13 +275,13 @@ function validarDomicilio() {
 
         // Formatear la fecha como DD/MM/YY
         const fechaFormateada = `${dia}/${mes}/${anio}`;
-        console.log("Fecha formateada para enviar:", fechaFormateada);
+        //console.log("Fecha formateada para enviar:", fechaFormateada);
 
-        const numeroInput = document.getElementById("numero");
-        numeroInput.value = numeroInput.value.trim(); // Corrige el error de sintaxis
-        const manzanaInput = document.getElementById("mza");
-        const calleInput = document.getElementById("calle");
-        const barrioInput = document.getElementById("barrio");
+        const numeroInput = document.getElementById("numero").value;
+        console.log("antes",numeroInput)
+        const manzanaInput = document.getElementById("mza").value.trim();
+        const calleInput = document.getElementById("calle").value.trim();
+        const barrioInput = document.getElementById("barrio").value.trim();
 
         if (!validarNumero(numeroInput)) return;
         if (!validarManzana(manzanaInput)) return;
