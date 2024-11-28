@@ -5,74 +5,76 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Denuncias derroche</title>
     <link rel="stylesheet" href="style.css">
-    
 </head>
 <body>
-    
-   
     <div class="section-background">
-        
-    <form id="formulario" enctype="multipart/form-data">
-        <h1>DERROCHE DE AGUA POTABLE</h1>
-        
-        <div class="form-group">
-            <label for="departamento">Departamento</label>
-            <select id="departamento" name="departamento" required>
-                <option value="">Seleccione un departamento</option>
-            </select>
-        </div>
-        <div class="domicilio-group">
-            <div class="form-group">
-                <label for="calle">Calle</label>
-                <input type="text" id="calle" name="calle">
-            </div>
-            <div class="form-group">
-                <label for="numero">Número</label>
-                <input type="text" id="numero" name="numero">
-            </div>
-            <div class="form-group">
-                <label for="barrio">Barrio</label>
-                <input type="text" id="barrio" name="barrio">
-            </div>
-            <div class="form-group">
-                <label for="mza">Manzana</label>
-                <input type="text" id="mza" name="mza" >
-            </div>
-            <div class="form-group">
-                <label for="ca">Casa</label>
-                <input type="text" id="ca" name="ca" >
-            </div>
-        </div>
-        
-        <div class="form-group">
-            <label for="tipificacion">Motivo</label>
-            <select id="tipificacion" name="tipificacion" required>
-                <option value="">Seleccione un motivo</option>
-            </select>
-        </div>
-        
-        <div class="form-group">
-            <label for="fecha_infraccion">Fecha de Infracción</label>
-            <input type="date" id="fecha_infraccion" name="fecha_infraccion" required>
-        </div>
-        <div class="form-group">
-            <label for="hora">Hora de Infracción</label>
-            <input type="number" id="hora" name="hora" min="0" max="23" step="1" required>
-        </div>
-        
-        <div class="form-group">
-            <label for="foto">Adjuntar la foto</label>
-            <input type="file" id="foto" name="foto" accept=".jpg,.jpeg,.png,">
-        </div>
-        
-        <button type="submit">Confirmar</button>
-    </form>
+        <form id="formulario" enctype="multipart/form-data">
+            <h1>DERROCHE DE AGUA POTABLE</h1>
 
-        <!----Spinner------>
+            <div class="form-group">
+                <label for="departamento">Departamento</label>
+                <select id="departamento" name="departamento" required>
+                    <option value="">Seleccione un departamento</option>
+                </select>
+            </div>
+            <div class="domicilio-group">
+                <div class="form-group">
+                    <label for="calle">Calle</label>
+                    <input type="text" id="calle" name="calle">
+                </div>
+                <div class="form-group">
+                    <label for="numero">Número</label>
+                    <input type="text" id="numero" name="numero">
+                </div>
+                <div class="form-group">
+                    <label for="barrio">Barrio</label>
+                    <input type="text" id="barrio" name="barrio">
+                </div>
+                <div class="form-group">
+                    <label for="mza">Manzana</label>
+                    <input type="text" id="mza" name="mza" >
+                </div>
+                <div class="form-group">
+                    <label for="ca">Casa</label>
+                    <input type="text" id="ca" name="ca" >
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="tipificacion">Motivo</label>
+                <select id="tipificacion" name="tipificacion" required>
+                    <option value="">Seleccione un motivo</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="fecha_infraccion">Fecha de Infracción</label>
+                <input type="date" id="fecha_infraccion" name="fecha_infraccion" required>
+            </div>
+            <div class="form-group">
+                <label for="hora">Hora de Infracción</label>
+                <input type="number" id="hora" name="hora" min="0" max="23" step="1" required>
+            </div>
+
+            <div class="form-group">
+                <label for="foto">Adjuntar la foto</label>
+                <input type="file" id="foto" name="foto" accept=".jpg,.jpeg,.png,">
+            </div>
+
+            <!-- Aquí agregamos el campo oculto para el token de reCAPTCHA -->
+            <input type="hidden" id="recaptcha_token" name="recaptcha_token">
+
+            <!-- reCAPTCHA widget -->
+            <div class="g-recaptcha" data-sitekey="6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI"></div>
+
+            <button type="submit">Confirmar</button>
+        </form>
+
+        <!-- Spinner -->
         <div id="overlay" class="overlay hidden">
             <div class="spinner"></div>
         </div>
-        
+
         <!-- Modal -->
         <div id="messageModal" class="modal">
             <div class="modal-content">
@@ -81,9 +83,9 @@
                 <p id="modalMessage">Aquí va el mensaje.</p>
             </div>
         </div>
-
     </div>
-    <script src="script.js"></script>
 
+    <script src="script.js"></script>
+    <script src="https://www.google.com/recaptcha/api.js" async defer></script>
 </body>
 </html>

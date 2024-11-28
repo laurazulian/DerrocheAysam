@@ -3,9 +3,14 @@ from fastapi.responses import JSONResponse
 from smb.SMBConnection import SMBConnection
 from io import BytesIO
 import os
+import httpx
 from pathlib import Path
 from datetime import datetime
 from fastapi.middleware.cors import CORSMiddleware
+from dotenv import load_dotenv
+
+#cargar variables .env
+load_dotenv()
 
 # Configuración FastAPI
 app = FastAPI()
@@ -15,6 +20,8 @@ origins = ["*"]
 methods = ["POST"]
 headers = ["*"]
 
+origins = ["http://127.0.0.1:5501"]
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
@@ -22,6 +29,35 @@ app.add_middleware(
     allow_methods=methods,
     allow_headers=headers,
 )
+@app.get("/config")
+async def get_config():
+
+    return JSONResponse(content={
+        "API_GET_DEPARTAMENTOS": os.getenv("API_GET_DEPARTAMENTOS"),
+        "API_GET_TIPIFICACIONES": os.getenv("API_GET_TIPIFICACIONES"),
+        "API_POST_FORMULARIO": os.getenv("API_POST_FORMULARIO"),
+        "API_UPLOAD_FOTO": os.getenv("API_UPLOAD_FOTO"),
+        "RECAPTCHA_SITE_KEY": os.getenv("RECAPTCHA_SITE_KEY"),  # Incluyendo la clave de reCAPTCHA
+        "RECAPTCHA_SECRET_KEY" : os.getenv("RECAPTCHA_SECRET_KEY")
+    })
+
+@app.post("/submit")
+async def submit_form(recaptcha_response: str = Form(...)):
+    async with httpx.Client() as client:
+        response = await client.post(
+            "https://www.google.com/recaptcha/api/siteverify",
+            data={
+                "secret": RECAPTCHA_SECRET_KEY,
+                "response": recaptcha_response
+            }
+        )
+        result = response.json()
+
+    if result.get("success"):
+        return {"message": "Form submitted successfully"}
+    else:
+        return {"message": "reCAPTCHA verification failed"}
+
 
 # Configuración de SMB
 UPLOAD_FOLDER = Path("//10.10.0.239/Fotos")

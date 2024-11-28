@@ -1,10 +1,25 @@
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", async () => {
     const departamentoSelect = document.getElementById("departamento");
     const tipificacionSelect = document.getElementById("tipificacion");
     const formulario = document.getElementById("formulario");
     const fileInput = document.getElementById("foto");
     const overlay = document.getElementById("overlay");
-    
+
+    // Cargar configuración desde el backend
+    let config;
+    try {
+        const response = await fetch("http://127.0.0.1:8000/config");
+
+       // const response = await fetch("/config");
+        if (!response.ok) throw new Error("Error al obtener configuración");
+        config = await response.json();
+    } catch (error) {
+        console.error("No se pudo cargar la configuración:", error);
+        return;
+    }
+
+    // Usar las variables de configuración
+    const { API_GET_DEPARTAMENTOS, API_GET_TIPIFICACIONES, API_POST_FORMULARIO, API_UPLOAD_FOTO } = config;
 
     // Simula obtener datos desde una API
     async function fetchFromAPI(endpoint) {
@@ -19,7 +34,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     async function loadDepartamentos() {
         try {
-            const response = await fetch("https://api.aysam.com.ar/test/Derroche/v1/get_departamentos");
+            const response = await fetch(API_GET_DEPARTAMENTOS);
             if (!response.ok) {
                 throw new Error(`Error HTTP: ${response.status}`);
             }
@@ -45,7 +60,7 @@ document.addEventListener("DOMContentLoaded", () => {
     // Carga datos en el select de tipificación
     async function loadTipificaciones() {
         try {
-            const response = await fetch("https://api.aysam.com.ar/test/Derroche/v1/get_tpf_derroche");
+            const response = await fetch(API_GET_TIPIFICACIONES);
             
             if (!response.ok) {
                 throw new Error(`Error HTTP: ${response.status}`);
@@ -254,7 +269,16 @@ function validarDomicilio() {
     formulario.addEventListener("submit", async (e) => {
         e.preventDefault(); // Prevenir el comportamiento por defecto del formulario
 
+        let recaptchaResponse = grecaptcha.getResponse();
 
+            // Verificar si el reCAPTCHA no ha sido completado
+            if (!recaptchaResponse) {
+                alert("Por favor, completa el CAPTCHA.");
+                return;
+            } else {
+                // Asignar el token al campo oculto para enviarlo en la solicitud
+                document.getElementById('recaptcha_token').value = recaptchaResponse;
+            }
       
        // Validar el formulario antes de enviar
         /*const archivoInput = document.getElementById("foto");
@@ -316,7 +340,7 @@ function validarDomicilio() {
             fileFormData.append("file", file);  // Aquí envías el archivo completo
     
             // Enviar el archivo a la API para obtener el nombre del archivo
-            const fileResponse = await fetch("https://api.aysam.com.ar/upload", {
+            const fileResponse = await fetch(API_UPLOAD_FOTO, {
                 method: "POST",
                 body: fileFormData,
             });
@@ -335,7 +359,7 @@ function validarDomicilio() {
 
             overlay.classList.remove("hidden");
             // Enviar el formulario con el nombre del archivo
-            const response = await fetch("https://api.aysam.com.ar/test/Derroche/v1/post_derroche", {   
+            const response = await fetch(API_POST_FORMULARIO, {   
                 method: "POST",
                 body: formData,
             });
