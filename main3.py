@@ -7,6 +7,16 @@ from pathlib import Path
 from datetime import datetime
 from fastapi.middleware.cors import CORSMiddleware
 
+from dotenv import load_dotenv
+#cargar variables .env
+load_dotenv()
+
+
+
+
+
+
+
 # Configuración FastAPI
 app = FastAPI()
 
@@ -15,13 +25,44 @@ origins = ["*"]
 methods = ["POST"]
 headers = ["*"]
 
+origins = [
+    "http://127.0.0.1:5500",  # Frontend en puerto 5501
+    # Puedes agregar más orígenes si tienes otros entornos o dominios
+]
+
+
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
     allow_credentials=True,
+    #allow_methods=["*"],  # Permitir todos los métodos (GET, POST, PUT, DELETE, etc.)
+    #allow_headers=["*"],
     allow_methods=methods,
     allow_headers=headers,
 )
+
+@app.get("/config")
+async def get_config():
+    
+    """Ruta que expone las variables de entorno necesarias para el frontend."""
+    departamentos = os.getenv("API_GET_DEPARTAMENTOS")
+    tipificaciones = os.getenv("API_GET_TIPIFICACIONES")
+    formulario = os.getenv("API_POST_FORMULARIO")
+    upload_foto = os.getenv("API_UPLOAD_FOTO")
+
+    # Imprime para verificar
+    print(departamentos, tipificaciones, formulario, upload_foto)
+
+    return JSONResponse(content={
+        "API_GET_DEPARTAMENTOS": os.getenv("API_GET_DEPARTAMENTOS"),
+        "API_GET_TIPIFICACIONES": os.getenv("API_GET_TIPIFICACIONES"),
+        "API_POST_FORMULARIO": os.getenv("API_POST_FORMULARIO"),
+        "API_UPLOAD_FOTO": os.getenv("API_UPLOAD_FOTO")
+    })
+
+
+
 
 # Configuración de SMB
 UPLOAD_FOLDER = Path("//10.10.0.239/Fotos")
