@@ -5,21 +5,40 @@ document.addEventListener("DOMContentLoaded", async () => {
     const fileInput = document.getElementById("foto");
     const overlay = document.getElementById("overlay");
 
-    // Cargar configuración desde el backend
-    let config;
-    try {
-        const response = await fetch("http://127.0.0.1:8000/config");
-
-       // const response = await fetch("/config");
-        if (!response.ok) throw new Error("Error al obtener configuración");
-        config = await response.json();
-    } catch (error) {
-        console.error("No se pudo cargar la configuración:", error);
-        return;
+    async function fetchConfig() {
+        let config;
+        try {
+            const response = await fetch("/config");
+            if (!response.ok) throw new Error("Error al obtener configuración");
+            config = await response.json();
+            return config;
+        } catch (error) {
+            console.error("No se pudo cargar la configuración:", error);
+            return null;
+        }
     }
+    
+    async function setupCaptcha() {
+        const config = await fetchConfig();
+        if (config && config.site_key) {
+            // Asegúrate de que el 'site_key' esté presente en la respuesta
+            const recaptchaElement = document.querySelector('.g-recaptcha');
+            if (recaptchaElement) {
+                recaptchaElement.setAttribute('data-sitekey', config.site_key);
+            }
+        } else {
+            console.error("Site key no disponible");
+        }
+    }
+    
+    setupCaptcha();
+    
 
     // Usar las variables de configuración
-    const { API_GET_DEPARTAMENTOS, API_GET_TIPIFICACIONES, API_POST_FORMULARIO, API_UPLOAD_FOTO } = config;
+    const { API_GET_DEPARTAMENTOS, API_GET_TIPIFICACIONES, API_POST_FORMULARIO, API_UPLOAD_FOTO, RECAPTCHA_SITE_KEY, RECAPTCHA_SECRET_KEY } = config;
+
+    document.querySelector(".g-recaptcha").setAttribute("data-sitekey", '6LcIxT4UAAAAAHMR7ea62m_BuG9f5TRNY5YlB2L_');
+
 
     // Simula obtener datos desde una API
     async function fetchFromAPI(endpoint) {
@@ -265,20 +284,48 @@ function validarDomicilio() {
     return true;
 }
    
-    
+    let siteKey;
+
+    async function loadRecaptchaConfig() {
+        try { siteKey = RECAPTCHA_SITE_KEY;
+
+            // Una vez cargada la clave, inicializar reCAPTCHA
+            const script = document.createElement("script");
+            script.src = `https://www.google.com/recaptcha/api.js?render=${siteKey}`;
+            script.async = true;
+            script.defer = true;
+            document.head.appendChild(script);
+        } catch (error) {
+            console.error("No se pudo cargar la configuración:", error);
+        }
+    }
+
+    loadRecaptchaConfig();
+
+
     formulario.addEventListener("submit", async (e) => {
         e.preventDefault(); // Prevenir el comportamiento por defecto del formulario
 
-        let recaptchaResponse = grecaptcha.getResponse();
+       /* grecaptcha.enterprise.ready(async () => {
+            const token = await grecaptcha.enterprise.execute('6Leb6IwqAAAAADggL36gcMvMPmrmSfejn1jyqdAi', {action: 'LOGIN'});
+          });*/
 
-            // Verificar si el reCAPTCHA no ha sido completado
-            if (!recaptchaResponse) {
-                alert("Por favor, completa el CAPTCHA.");
-                return;
-            } else {
-                // Asignar el token al campo oculto para enviarlo en la solicitud
-                document.getElementById('recaptcha_token').value = recaptchaResponse;
-            }
+          async function generateToken() {
+              if (siteKey) {
+                  grecaptcha.ready(() => {
+                      grecaptcha.execute(siteKey, { action: "submit" }).then((token) => {
+                          document.getElementById("g-recaptcha").value = token;
+                      });
+                  });
+              }
+          }
+          
+          // Ejecutar la generación del token antes de enviar el formulario
+          document.getElementById("captcha-form").addEventListener("submit", (event) => {
+              event.preventDefault(); // Evitar el envío del formulario hasta generar el token
+              generateToken().then(() => event.target.submit());
+          });
+
       
        // Validar el formulario antes de enviar
         /*const archivoInput = document.getElementById("foto");
@@ -329,6 +376,7 @@ function validarDomicilio() {
         formData.append("p_barrio",document.getElementById("barrio").value);
         formData.append("p_casa",document.getElementById("ca").value);
         formData.append("p_manzana",document.getElementById("mza").value);
+        formData.append("recaptcha_response", captchaResponse);
     
         // Si hay un archivo, primero lo subimos y luego enviamos solo el nombre del archivo a la base de datos
         const fotoInput = document.getElementById('foto');

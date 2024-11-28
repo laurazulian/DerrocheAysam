@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Denuncias derroche</title>
     <link rel="stylesheet" href="style.css">
+    <!--<script src="https://www.google.com/recaptcha/enterprise.js?render=6Leb6IwqAAAAADggL36gcMvMPmrmSfejn1jyqdAi"></script>-->
+    <!--<script src="https://www.google.com/recaptcha/api.js" async defer></script>-->
 </head>
 <body>
     <div class="section-background">
@@ -62,11 +64,10 @@
             </div>
 
             <!-- Aquí agregamos el campo oculto para el token de reCAPTCHA -->
-            <input type="hidden" id="recaptcha_token" name="recaptcha_token">
+            <!--<input type="hidden" id="recaptcha_token" name="recaptcha_token">-->
 
             <!-- reCAPTCHA widget -->
-            <div class="g-recaptcha" data-sitekey="data-sitekey="{{ site_key }}></div>
-
+            <div class="g-recaptcha" data-sitekey=""></div>
             <button type="submit">Confirmar</button>
         </form>
 
@@ -86,6 +87,5 @@
     </div>
 
     <script src="script.js"></script>
-    <script src="https://www.google.com/recaptcha/api.js" async defer></script>
 </body>
 </html>

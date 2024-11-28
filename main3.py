@@ -1,16 +1,16 @@
-from fastapi import FastAPI, File, UploadFile, HTTPException, Form
-from fastapi.responses import JSONResponse
+from fastapi import FastAPI, File, UploadFile, HTTPException, Form, Request
+from fastapi.responses import JSONResponse, HTMLResponse
 from smb.SMBConnection import SMBConnection
 from io import BytesIO
-from fastapi.responses import HTMLResponse 
 import os
-import httpx
 from pathlib import Path
 from datetime import datetime
 from fastapi.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
+from slowapi import Limiter
+from slowapi.util import get_remote_address
 
-#cargar variables .env
+# Cargar variables .env
 load_dotenv()
 
 # Configuración FastAPI
@@ -25,63 +25,78 @@ origins = ["http://127.0.0.1:5501"]
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,
+    allow_origins=["http://127.0.0.1:5501"],
     allow_credentials=True,
     allow_methods=methods,
     allow_headers=headers,
 )
+
+# Configuración SlowAPI
+limiter = Limiter(key_func=get_remote_address)
+
+# Aplica el middleware de SlowAPI
+app.state.limiter = limiter
+
+# Ruta con limitación de peticiones
+@app.get("/limiter")
+@limiter.limit("5/minute")  # Limitar a 5 peticiones por minuto
+async def index(request: Request):
+    return {"message": "Welcome to the index page!"}
+
+@app.get("/formulario")
+@limiter.limit("5/minute")  # Limitar a 5 peticiones por minuto
+async def formulario(request: Request):
+    return {"message": "Formulario recibido"}
+
+# Manejo de error en caso de superar el límite
+@app.exception_handler(429)
+async def ratelimit_error(request, exc):
+    return JSONResponse(
+        status_code=429,
+        content={"message": "Rate limit exceeded"}
+    )
+
+
 @app.get("/config")
 async def get_config():
-
     return JSONResponse(content={
         "API_GET_DEPARTAMENTOS": os.getenv("API_GET_DEPARTAMENTOS"),
         "API_GET_TIPIFICACIONES": os.getenv("API_GET_TIPIFICACIONES"),
         "API_POST_FORMULARIO": os.getenv("API_POST_FORMULARIO"),
         "API_UPLOAD_FOTO": os.getenv("API_UPLOAD_FOTO"),
         "RECAPTCHA_SITE_KEY": os.getenv("RECAPTCHA_SITE_KEY"),  # Incluyendo la clave de reCAPTCHA
-        "RECAPTCHA_SECRET_KEY" : os.getenv("RECAPTCHA_SECRET_KEY")
+        "RECAPTCHA_SECRET_KEY": os.getenv("RECAPTCHA_SECRET_KEY")
     })
 
-@app.post("/submit")
-async def submit_form(recaptcha_response: str = Form(...)):
-    recaptcha_secret_key = os.getenv("RECAPTCHA_SECRET_KEY")  # Recuperar clave secreta
-
-    async with httpx.Client() as client:
-        response = await client.post(
-            "https://www.google.com/recaptcha/api/siteverify",
-            data={
-                "secret": recaptcha_secret_key,
-                "response": recaptcha_response
-            }
-        )
-        result = response.json()
-
-    if result.get("success"):
-        return {"message": "Form submitted successfully"}
-    else:
-        return {"message": "reCAPTCHA verification failed"}
 
 @app.get("/")
 async def get_index():
-    # Suponiendo que ya has cargado el site_key desde el endpoint /config
-    site_key = os.getenv("RECAPTCHA_SITE_KEY")
+    site_key = os.getenv("RECAPTCHA_SITE_KEY")  # Leer desde .env
+    if not site_key:
+        raise HTTPException(status_code=500, detail="RECAPTCHA_SITE_KEY no configurado en .env")
+
     html = f"""
     <!DOCTYPE html>
-    <html lang="en">
+    <html lang="es">
     <head>
         <meta charset="UTF-8">
-        <title>reCAPTCHA Example</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Denuncias derroche</title>
         <script src="https://www.google.com/recaptcha/api.js" async defer></script>
     </head>
     <body>
-        <form action="/submit" method="post">
+        <form id="formulario" enctype="multipart/form-data">
+            <h1>DERROCHE DE AGUA POTABLE</h1>
+
+            <!-- Aquí se asigna dinámicamente el site_key -->
             <div class="g-recaptcha" data-sitekey="{site_key}"></div>
-            <button type="submit">Submit</button>
+            <button type="submit">Confirmar</button>
         </form>
     </body>
     </html>
     """
     return HTMLResponse(content=html)
+
 
 # Configuración de SMB
 UPLOAD_FOLDER = Path("//10.10.0.239/Fotos")
@@ -99,7 +114,6 @@ def connect_to_smb_server(server, username, password):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error al conectar con el servidor SMB: {e}")
 
-# Función para escribir en el servidor SMB
 def upload_to_smb(file_data, filename, server, share_name, username, password):
     conn = None
     try:
@@ -120,13 +134,11 @@ def upload_to_smb(file_data, filename, server, share_name, username, password):
         if conn:
             conn.close()
 
-# Función para verificar extensiones permitidas
 def allowed_file(filename: str) -> bool:
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 @app.post("/upload")
 async def upload_file(file: UploadFile = File(...)):
-    # Verificar si el archivo tiene una extensión permitida
     if not allowed_file(file.filename):
         raise HTTPException(status_code=400, detail="Tipo de archivo no permitido")
     
@@ -136,15 +148,13 @@ async def upload_file(file: UploadFile = File(...)):
 
     # Obtener la fecha y hora actuales
     current_datetime = datetime.now().strftime("%d%m%Y%H%M")
-    
-    # Concatenar fecha y hora al nombre del archivo
     new_filename = f"{base_name}_{current_datetime}{extension}"
 
     # Parámetros para la conexión SMB
     server = "10.10.0.239"  # Dirección del servidor SMB
-    share_name = "fotos"    # Nombre del recurso compartido en el servidor
-    username = "derroche"    # Nombre de usuario
-    password = "nKVHB4m1S3"    # Contraseña
+    share_name = "fotos"    # Nombre del recurso compartido
+    username = "derroche"   # Nombre de usuario
+    password = "nKVHB4m1S3"  # Contraseña
 
     try:
         # Leer el contenido del archivo
