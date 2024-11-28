@@ -1,7 +1,8 @@
-from fastapi import FastAPI, File, UploadFile, HTTPException
+from fastapi import FastAPI, File, UploadFile, HTTPException, Form
 from fastapi.responses import JSONResponse
 from smb.SMBConnection import SMBConnection
 from io import BytesIO
+from fastapi.responses import HTMLResponse 
 import os
 import httpx
 from pathlib import Path
@@ -43,11 +44,13 @@ async def get_config():
 
 @app.post("/submit")
 async def submit_form(recaptcha_response: str = Form(...)):
+    recaptcha_secret_key = os.getenv("RECAPTCHA_SECRET_KEY")  # Recuperar clave secreta
+
     async with httpx.Client() as client:
         response = await client.post(
             "https://www.google.com/recaptcha/api/siteverify",
             data={
-                "secret": RECAPTCHA_SECRET_KEY,
+                "secret": recaptcha_secret_key,
                 "response": recaptcha_response
             }
         )
@@ -58,6 +61,27 @@ async def submit_form(recaptcha_response: str = Form(...)):
     else:
         return {"message": "reCAPTCHA verification failed"}
 
+@app.get("/")
+async def get_index():
+    # Suponiendo que ya has cargado el site_key desde el endpoint /config
+    site_key = os.getenv("RECAPTCHA_SITE_KEY")
+    html = f"""
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <title>reCAPTCHA Example</title>
+        <script src="https://www.google.com/recaptcha/api.js" async defer></script>
+    </head>
+    <body>
+        <form action="/submit" method="post">
+            <div class="g-recaptcha" data-sitekey="{site_key}"></div>
+            <button type="submit">Submit</button>
+        </form>
+    </body>
+    </html>
+    """
+    return HTMLResponse(content=html)
 
 # Configuración de SMB
 UPLOAD_FOLDER = Path("//10.10.0.239/Fotos")
