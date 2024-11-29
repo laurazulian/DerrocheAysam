@@ -43,7 +43,6 @@ document.addEventListener("DOMContentLoaded", async () => {
         }
     }
     
-    initializeConfig();
 
     function loadRecaptchaScript() {
         if (appConfig.RECAPTCHA_SITE_KEY) {
@@ -79,9 +78,10 @@ document.addEventListener("DOMContentLoaded", async () => {
             console.error("Site key no disponible");
         }
     }
+
     
     // Inicializar la configuración al cargar el documento
-   //    initializeConfig();
+   initializeConfig();
     
     // Simula obtener datos desde una API
     async function fetchFromAPI(endpoint) {
@@ -174,6 +174,9 @@ document.addEventListener("DOMContentLoaded", async () => {
             }
         };    
         
+        
+    
+
 // Función principal para validar el formulario antes de enviarlo
 function validarFormulario() {
     // Validar archivo
@@ -277,6 +280,31 @@ function validarDomicilio() {
 
     console.log("Entra a las validaciones")
 
+    function cantidadDeCaracteres(cadena){
+        if (cadena.length > 150){
+            openModal("No puede ingresar más de 150 caracteres.");
+            return false
+        }
+        return true;
+    }
+
+    if (!cantidadDeCaracteres(calle)){
+        return false
+    }
+
+    if (!cantidadDeCaracteres(numero)){
+        return false
+    }
+    if (!cantidadDeCaracteres(casa)){
+        return false
+    }
+    if (!cantidadDeCaracteres(barrio)){
+        return false
+    }
+    if (!cantidadDeCaracteres(manzana)){
+        return false
+    }
+
       // Verificar si se cumple la primera combinación (calle y número)
       const tieneCalleYNumero = calle && numero;
 
@@ -371,7 +399,7 @@ function validarDomicilio() {
         if (!validarSinCaracteresEspeciales(barrioInput)) return;
         
         const formData = new FormData();
-    
+        overlay.classList.remove("hidden");
         // Agregar los demás campos al FormData
         formData.append("p_dep_codigo", document.getElementById("departamento").value); // Número
         formData.append("p_tpf_id", document.getElementById("tipificacion").value); // Número
@@ -411,8 +439,6 @@ function validarDomicilio() {
         }
     
         try {
-
-            overlay.classList.remove("hidden");
             // Enviar el formulario con el nombre del archivo
             const response = await fetch(appConfig.API_POST_FORMULARIO, {   
                 method: "POST",
