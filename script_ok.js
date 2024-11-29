@@ -271,8 +271,7 @@ function validarManzana(input) {
     return true; // Todo está bien
 }*/
 
-function validarArchivo(event) {
-    const inputFile = document.getElementById("archivo");
+function validarArchivo(inputFile) {
     const archivo = inputFile.files[0]; // Obtener el archivo cargado
     const tiposPermitidos = ["image/jpeg", "image/png", "image/jpg"];
     const tamanioMaximo = 10 * 1024 * 1024; // 10 MB
@@ -284,22 +283,19 @@ function validarArchivo(event) {
 
     // Validar tipo de archivo
     if (!tiposPermitidos.includes(archivo.type)) {
-        // Detener el envío del formulario
-        event.preventDefault();
         openModal("El archivo debe ser JPG, JPEG o PNG.");
         return false;
     }
 
     // Validar tamaño de archivo
     if (archivo.size > tamanioMaximo) {
-        // Detener el envío del formulario
-        event.preventDefault();
         openModal("El archivo no puede superar los 10MB.");
         return false;
     }
 
     return true; // Todo está bien
 }
+
 
 // Función para validar el domicilio
 function validarDomicilio() {
@@ -394,15 +390,11 @@ function validarDomicilio() {
         }
 
        // Validar el formulario antes de enviar
-        const archivoInput = document.getElementById("foto");
-        if (!validarArchivo(archivoInput)) {
-            return; // Detener el envío si no es válido
-        }
+       const archivoInput = document.getElementById("foto");
+       if (!validarArchivo(archivoInput)) {
+           return; // Detener el envío si el archivo no es válido
+       }
 
-        /*const domicilioInput = document.getElementById("domicilio");
-        if (!validarDomicilio(domicilioInput)) {
-            return; // Detener el envío si el domicilio no es válido
-        }*/
 
         const fechaInput = document.getElementById("fecha_infraccion").value;
 
