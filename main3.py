@@ -10,27 +10,25 @@ from dotenv import load_dotenv
 from slowapi import Limiter
 from slowapi.util import get_remote_address
 
-# Cargar variables .env
-load_dotenv()
-
 # Configuración FastAPI
 app = FastAPI()
 
+# Cargar variables .env
+load_dotenv()
+
 # Configuración de CORS (opcional, si se necesita habilitar el acceso desde diferentes orígenes)
 origins = ["*"]
-methods = ["POST"]
+methods = ["*"]
 headers = ["*"]
-
-origins = ["http://127.0.0.1:5501"]
+credentials = ["*"]
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://127.0.0.1:5501"],
+    allow_origins=["*"],  # Permite todas las solicitudes de origen cruzado. Cámbialo a una lista específica de dominios en producción.
     allow_credentials=True,
-    allow_methods=methods,
-    allow_headers=headers,
+    allow_methods=["*"],  # Permite todos los métodos HTTP (GET, POST, etc.).
+    allow_headers=["*"],  # Permite todos los encabezados.
 )
-
 # Configuración SlowAPI
 limiter = Limiter(key_func=get_remote_address)
 
@@ -67,35 +65,6 @@ async def get_config():
         "RECAPTCHA_SITE_KEY": os.getenv("RECAPTCHA_SITE_KEY"),  # Incluyendo la clave de reCAPTCHA
         "RECAPTCHA_SECRET_KEY": os.getenv("RECAPTCHA_SECRET_KEY")
     })
-
-
-@app.get("/")
-async def get_index():
-    site_key = os.getenv("RECAPTCHA_SITE_KEY")  # Leer desde .env
-    if not site_key:
-        raise HTTPException(status_code=500, detail="RECAPTCHA_SITE_KEY no configurado en .env")
-
-    html = f"""
-    <!DOCTYPE html>
-    <html lang="es">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Denuncias derroche</title>
-        <script src="https://www.google.com/recaptcha/api.js" async defer></script>
-    </head>
-    <body>
-        <form id="formulario" enctype="multipart/form-data">
-            <h1>DERROCHE DE AGUA POTABLE</h1>
-
-            <!-- Aquí se asigna dinámicamente el site_key -->
-            <div class="g-recaptcha" data-sitekey="{site_key}"></div>
-            <button type="submit">Confirmar</button>
-        </form>
-    </body>
-    </html>
-    """
-    return HTMLResponse(content=html)
 
 
 # Configuración de SMB

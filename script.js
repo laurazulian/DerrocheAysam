@@ -5,39 +5,146 @@ document.addEventListener("DOMContentLoaded", async () => {
     const fileInput = document.getElementById("foto");
     const overlay = document.getElementById("overlay");
 
+    let appConfig = {};
+
     async function fetchConfig() {
-        let config;
         try {
-            const response = await fetch("/config");
+            const response = await fetch("http://localhost:8000/config");
             if (!response.ok) throw new Error("Error al obtener configuración");
-            config = await response.json();
-            return config;
+            const data = await response.json();
+            console.log("Configuración recibida:", data);
+            return data; // Devuelve la configuración obtenida
         } catch (error) {
             console.error("No se pudo cargar la configuración:", error);
             return null;
         }
     }
     
-    async function setupCaptcha() {
+    async function initializeConfig() {
         const config = await fetchConfig();
-        if (config && config.site_key) {
-            // Asegúrate de que el 'site_key' esté presente en la respuesta
-            const recaptchaElement = document.querySelector('.g-recaptcha');
-            if (recaptchaElement) {
-                recaptchaElement.setAttribute('data-sitekey', config.site_key);
-            }
+        if (config) {
+            // Asignar las variables al objeto global appConfig
+            appConfig = {
+                API_GET_DEPARTAMENTOS: config.API_GET_DEPARTAMENTOS,
+                API_GET_TIPIFICACIONES: config.API_GET_TIPIFICACIONES,
+                API_POST_FORMULARIO: config.API_POST_FORMULARIO,
+                API_UPLOAD_FOTO: config.API_UPLOAD_FOTO,
+                RECAPTCHA_SITE_KEY: config.RECAPTCHA_SITE_KEY,
+                RECAPTCHA_SECRET_KEY: config.RECAPTCHA_SECRET_KEY,
+            };
+    
+            console.log("Variables de entorno cargadas:");
+            console.log(appConfig);
+    
+            // Configurar el CAPTCHA
+            loadRecaptchaScript();
+        } else {
+            console.error("No se pudo inicializar la configuración");
+        }
+    }
+    
+    function loadRecaptchaScript() {
+        if (appConfig.RECAPTCHA_SITE_KEY) {
+            // Cargar el script de reCAPTCHA v3 de forma dinámica
+            const script = document.createElement('script');
+            script.src = `https://www.google.com/recaptcha/api.js?render=${appConfig.RECAPTCHA_SITE_KEY}`;
+            //script.async = true;
+            //script.defer = true;
+    
+            script.onload = () => {
+                console.log("Script de reCAPTCHA cargado exitosamente");
+                setupCaptcha();
+            };
+    
+            document.head.appendChild(script);
         } else {
             console.error("Site key no disponible");
         }
     }
     
-    setupCaptcha();
+    function setupCaptcha() {
+        if (appConfig.RECAPTCHA_SITE_KEY) {
+            // Espera a que reCAPTCHA esté listo
+            grecaptcha.ready(() => {
+                console.log("reCAPTCHA está listo");
     
+                // Generar un token para una acción específica
+                grecaptcha.execute(appConfig.RECAPTCHA_SITE_KEY, { action: 'submit' }).then(token => {
+                    console.log("Token generado:", token);
+    
+                    // Inserta el token en el campo oculto del formulario
+                    const recaptchaInput = document.getElementById("recaptcha_token");
+                    if (recaptchaInput) {
+                        recaptchaInput.value = token;
+                    } else {
+                        console.error("Campo oculto para reCAPTCHA no encontrado");
+                    }
+                });
+            });
+        } else {
+            console.error("Site key no disponible");
+        }
+    }
+    
+    // Inicializar la configuración al cargar el documento
+    initializeConfig();
+    
+    
+// Declarar un objeto para almacenar la configuración
+/*let appConfig = {};
 
-    // Usar las variables de configuración
-    const { API_GET_DEPARTAMENTOS, API_GET_TIPIFICACIONES, API_POST_FORMULARIO, API_UPLOAD_FOTO, RECAPTCHA_SITE_KEY, RECAPTCHA_SECRET_KEY } = config;
+async function fetchConfig() {
+    try {
+        const response = await fetch("http://localhost:8000/config");
+        if (!response.ok) throw new Error("Error al obtener configuración");
+        const data = await response.json();
+        console.log("Configuración recibida:", data);
+        return data; // Devuelve la configuración obtenida
+    } catch (error) {
+        console.error("No se pudo cargar la configuración:", error);
+        return null;
+    }
+}
 
-    document.querySelector(".g-recaptcha").setAttribute("data-sitekey", '6LcIxT4UAAAAAHMR7ea62m_BuG9f5TRNY5YlB2L_');
+async function initializeConfig() {
+    const config = await fetchConfig();
+    if (config) {
+        // Asignar las variables al objeto global appConfig
+        appConfig = {
+            API_GET_DEPARTAMENTOS: config.API_GET_DEPARTAMENTOS,
+            API_GET_TIPIFICACIONES: config.API_GET_TIPIFICACIONES,
+            API_POST_FORMULARIO: config.API_POST_FORMULARIO,
+            API_UPLOAD_FOTO: config.API_UPLOAD_FOTO,
+            RECAPTCHA_SITE_KEY: config.RECAPTCHA_SITE_KEY,
+            RECAPTCHA_SECRET_KEY: config.RECAPTCHA_SECRET_KEY,
+        };
+
+        console.log("Variables de entorno cargadas:");
+        console.log(appConfig);
+
+        // Configurar el CAPTCHA
+        setupCaptcha();
+    } else {
+        console.error("No se pudo inicializar la configuración");
+    }
+}
+
+function setupCaptcha() {
+    if (appConfig.RECAPTCHA_SITE_KEY) {
+        const recaptchaElement = document.querySelector('.g-recaptcha');
+        if (recaptchaElement) {
+            recaptchaElement.setAttribute('data-sitekey', appConfig.RECAPTCHA_SITE_KEY);
+        }
+    } else {
+        console.error("Site key no disponible");
+    }
+}
+
+// Inicializar la configuración al cargar el documento
+initializeConfig();*/
+
+
+    
 
 
     // Simula obtener datos desde una API
@@ -283,50 +390,7 @@ function validarDomicilio() {
     // Si pasa todas las validaciones, retornamos true
     return true;
 }
-   
-    let siteKey;
 
-    async function loadRecaptchaConfig() {
-        try { siteKey = RECAPTCHA_SITE_KEY;
-
-            // Una vez cargada la clave, inicializar reCAPTCHA
-            const script = document.createElement("script");
-            script.src = `https://www.google.com/recaptcha/api.js?render=${siteKey}`;
-            script.async = true;
-            script.defer = true;
-            document.head.appendChild(script);
-        } catch (error) {
-            console.error("No se pudo cargar la configuración:", error);
-        }
-    }
-
-    loadRecaptchaConfig();
-
-
-    formulario.addEventListener("submit", async (e) => {
-        e.preventDefault(); // Prevenir el comportamiento por defecto del formulario
-
-       /* grecaptcha.enterprise.ready(async () => {
-            const token = await grecaptcha.enterprise.execute('6Leb6IwqAAAAADggL36gcMvMPmrmSfejn1jyqdAi', {action: 'LOGIN'});
-          });*/
-
-          async function generateToken() {
-              if (siteKey) {
-                  grecaptcha.ready(() => {
-                      grecaptcha.execute(siteKey, { action: "submit" }).then((token) => {
-                          document.getElementById("g-recaptcha").value = token;
-                      });
-                  });
-              }
-          }
-          
-          // Ejecutar la generación del token antes de enviar el formulario
-          document.getElementById("captcha-form").addEventListener("submit", (event) => {
-              event.preventDefault(); // Evitar el envío del formulario hasta generar el token
-              generateToken().then(() => event.target.submit());
-          });
-
-      
        // Validar el formulario antes de enviar
         /*const archivoInput = document.getElementById("foto");
         if (!validarArchivo(archivoInput)) {
@@ -434,4 +498,3 @@ function validarDomicilio() {
             overlay.classList.add("hidden");
         }
     });
-});
