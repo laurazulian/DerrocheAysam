@@ -1,11 +1,88 @@
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", async () => {
     const departamentoSelect = document.getElementById("departamento");
     const tipificacionSelect = document.getElementById("tipificacion");
     const formulario = document.getElementById("formulario");
     const fileInput = document.getElementById("foto");
     const overlay = document.getElementById("overlay");
+
+    let appConfig = {};
+
+    async function fetchConfig() {
+        try {
+            const response = await fetch("http://localhost:8000/config");
+            if (!response.ok) throw new Error("Error al obtener configuración");
+            const data = await response.json();
+            console.log("Configuración recibida:", data);
+            return data; // Devuelve la configuración obtenida
+        } catch (error) {
+            console.error("No se pudo cargar la configuración:", error);
+            return null;
+        }
+    }
+    
+    async function initializeConfig() {
+        const config = await fetchConfig();
+        if (config) {
+            appConfig = {
+                API_GET_DEPARTAMENTOS: config.API_GET_DEPARTAMENTOS,
+                API_GET_TIPIFICACIONES: config.API_GET_TIPIFICACIONES,
+                API_POST_FORMULARIO: config.API_POST_FORMULARIO,
+                API_UPLOAD_FOTO: config.API_UPLOAD_FOTO,
+                RECAPTCHA_SITE_KEY: config.RECAPTCHA_SITE_KEY,
+            };
+            console.log("Variables de entorno cargadas:", appConfig);
+
+            // Configurar reCAPTCHA
+            loadRecaptchaScript();
+
+            // Cargar datos
+            await loadDepartamentos();
+            await loadTipificaciones();
+        } else {
+            console.error("No se pudo inicializar la configuración");
+        }
+    }
     
 
+    function loadRecaptchaScript() {
+        if (appConfig.RECAPTCHA_SITE_KEY) {
+            // Cargar el script de reCAPTCHA v3 de forma dinámica
+            const script = document.createElement('script');
+            script.src = `https://www.google.com/recaptcha/api.js?render=${appConfig.RECAPTCHA_SITE_KEY}`;
+            //script.async = true;
+            //script.defer = true;
+    
+            script.onload = () => {
+                console.log("Script de reCAPTCHA cargado exitosamente");
+                setupCaptcha();
+            };
+    
+            document.head.appendChild(script);
+        } else {
+            console.error("Site key no disponible");
+        }
+    }
+    function setupCaptcha() {
+        if (appConfig.RECAPTCHA_SITE_KEY) {
+            // Espera a que reCAPTCHA esté listo
+            grecaptcha.ready(() => {
+                console.log("reCAPTCHA está listo");
+    
+                // Ejecuta la acción sin necesidad de obtener el token
+                grecaptcha.execute(appConfig.RECAPTCHA_SITE_KEY, { action: 'submit' }).then(() => {
+                    console.log("Acción reCAPTCHA ejecutada");
+                    // Ya no se necesita hacer nada con el token
+                });
+            });
+        } else {
+            console.error("Site key no disponible");
+        }
+    }
+
+    
+    // Inicializar la configuración al cargar el documento
+   initializeConfig();
+    
     // Simula obtener datos desde una API
     async function fetchFromAPI(endpoint) {
         const response = await fetch(endpoint);
@@ -19,7 +96,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     async function loadDepartamentos() {
         try {
-            const response = await fetch("https://api.aysam.com.ar/test/Derroche/v1/get_departamentos");
+            const response = await fetch(appConfig.API_GET_DEPARTAMENTOS);
             if (!response.ok) {
                 throw new Error(`Error HTTP: ${response.status}`);
             }
@@ -40,12 +117,11 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
-    loadDepartamentos();
 
     // Carga datos en el select de tipificación
     async function loadTipificaciones() {
         try {
-            const response = await fetch("https://api.aysam.com.ar/test/Derroche/v1/get_tpf_derroche");
+            const response = await fetch(appConfig.API_GET_TIPIFICACIONES);
             
             if (!response.ok) {
                 throw new Error(`Error HTTP: ${response.status}`);
@@ -67,8 +143,6 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
     
-    loadTipificaciones();
-
     // Función para abrir el modal con un mensaje y cerrarlo automáticamente
         function openModal(message, autoClose = true, closeAfter = 3000) { // Por defecto, cierra tras 3 segundos
             const modalMessage = document.getElementById("modalMessage");
@@ -100,6 +174,9 @@ document.addEventListener("DOMContentLoaded", () => {
             }
         };    
         
+        
+    
+
 // Función principal para validar el formulario antes de enviarlo
 function validarFormulario() {
     // Validar archivo
@@ -109,10 +186,10 @@ function validarFormulario() {
     }
 
     // Validar domicilio
-    const domicilioInput = document.getElementById("domicilio");
+   /* const domicilioInput = document.getElementById("domicilio");
     if (!validarDomicilio(domicilioInput)) {
         return; // Detener el envío si el domicilio no es válido
-    }
+    }*/
 
     // Validar número
     const numeroInput = document.getElementById("numero");
@@ -201,6 +278,32 @@ function validarDomicilio() {
     const casa = document.getElementById("ca").value.trim();
     const barrio = document.getElementById("barrio").value.trim();
 
+    console.log("Entra a las validaciones")
+
+    function cantidadDeCaracteres(cadena){
+        if (cadena.length > 150){
+            openModal("No puede ingresar más de 150 caracteres.");
+            return false
+        }
+        return true;
+    }
+
+    if (!cantidadDeCaracteres(calle)){
+        return false
+    }
+
+    if (!cantidadDeCaracteres(numero)){
+        return false
+    }
+    if (!cantidadDeCaracteres(casa)){
+        return false
+    }
+    if (!cantidadDeCaracteres(barrio)){
+        return false
+    }
+    if (!cantidadDeCaracteres(manzana)){
+        return false
+    }
 
       // Verificar si se cumple la primera combinación (calle y número)
       const tieneCalleYNumero = calle && numero;
@@ -249,23 +352,26 @@ function validarDomicilio() {
     // Si pasa todas las validaciones, retornamos true
     return true;
 }
-   
-    
+
     formulario.addEventListener("submit", async (e) => {
-        e.preventDefault(); // Prevenir el comportamiento por defecto del formulario
+        e.preventDefault();
+        validarDomicilio()
 
-
-      
-       // Validar el formulario antes de enviar
-        /*const archivoInput = document.getElementById("foto");
-        if (!validarArchivo(archivoInput)) {
-            return; // Detener el envío si no es válido
-        }*/
-
-        const domicilioInput = document.getElementById("domicilio");
-        if (!validarDomicilio(domicilioInput)) {
+        
+        if (!validarDomicilio()) {
             return; // Detener el envío si el domicilio no es válido
         }
+
+       // Validar el formulario antes de enviar
+        const archivoInput = document.getElementById("foto");
+        if (!validarArchivo(archivoInput)) {
+            return; // Detener el envío si no es válido
+        }
+
+        /*const domicilioInput = document.getElementById("domicilio");
+        if (!validarDomicilio(domicilioInput)) {
+            return; // Detener el envío si el domicilio no es válido
+        }*/
 
         const fechaInput = document.getElementById("fecha_infraccion").value;
 
@@ -293,7 +399,7 @@ function validarDomicilio() {
         if (!validarSinCaracteresEspeciales(barrioInput)) return;
         
         const formData = new FormData();
-    
+        overlay.classList.remove("hidden");
         // Agregar los demás campos al FormData
         formData.append("p_dep_codigo", document.getElementById("departamento").value); // Número
         formData.append("p_tpf_id", document.getElementById("tipificacion").value); // Número
@@ -305,6 +411,7 @@ function validarDomicilio() {
         formData.append("p_barrio",document.getElementById("barrio").value);
         formData.append("p_casa",document.getElementById("ca").value);
         formData.append("p_manzana",document.getElementById("mza").value);
+        //formData.append("recaptcha_response", captchaResponse);
     
         // Si hay un archivo, primero lo subimos y luego enviamos solo el nombre del archivo a la base de datos
         const fotoInput = document.getElementById('foto');
@@ -316,7 +423,7 @@ function validarDomicilio() {
             fileFormData.append("file", file);  // Aquí envías el archivo completo
     
             // Enviar el archivo a la API para obtener el nombre del archivo
-            const fileResponse = await fetch("https://api.aysam.com.ar/upload", {
+            const fileResponse = await fetch(appConfig.API_UPLOAD_FOTO, {
                 method: "POST",
                 body: fileFormData,
             });
@@ -332,10 +439,8 @@ function validarDomicilio() {
         }
     
         try {
-
-            overlay.classList.remove("hidden");
             // Enviar el formulario con el nombre del archivo
-            const response = await fetch("https://api.aysam.com.ar/test/Derroche/v1/post_derroche", {   
+            const response = await fetch(appConfig.API_POST_FORMULARIO, {   
                 method: "POST",
                 body: formData,
             });
@@ -361,5 +466,5 @@ function validarDomicilio() {
             // Oculta el overlay
             overlay.classList.add("hidden");
         }
-    });
+    })
 });

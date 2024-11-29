@@ -1,27 +1,71 @@
-from fastapi import FastAPI, File, UploadFile, HTTPException
-from fastapi.responses import JSONResponse
+from fastapi import FastAPI, File, UploadFile, HTTPException, Form, Request
+from fastapi.responses import JSONResponse, HTMLResponse
 from smb.SMBConnection import SMBConnection
 from io import BytesIO
 import os
 from pathlib import Path
 from datetime import datetime
 from fastapi.middleware.cors import CORSMiddleware
+from dotenv import load_dotenv
+from slowapi import Limiter
+from slowapi.util import get_remote_address
 
 # Configuración FastAPI
 app = FastAPI()
 
+# Cargar variables .env
+load_dotenv()
+
 # Configuración de CORS (opcional, si se necesita habilitar el acceso desde diferentes orígenes)
 origins = ["*"]
-methods = ["POST"]
+methods = ["*"]
 headers = ["*"]
+credentials = ["*"]
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,
+    allow_origins=["*"],  # Permite todas las solicitudes de origen cruzado. Cámbialo a una lista específica de dominios en producción.
     allow_credentials=True,
-    allow_methods=methods,
-    allow_headers=headers,
+    allow_methods=["*"],  # Permite todos los métodos HTTP (GET, POST, etc.).
+    allow_headers=["*"],  # Permite todos los encabezados.
 )
+# Configuración SlowAPI
+limiter = Limiter(key_func=get_remote_address)
+
+# Aplica el middleware de SlowAPI
+app.state.limiter = limiter
+
+# Ruta con limitación de peticiones
+@app.get("/limiter")
+@limiter.limit("5/minute")  # Limitar a 5 peticiones por minuto
+async def index(request: Request):
+    return {"message": "Welcome to the index page!"}
+
+@app.get("/formulario")
+@limiter.limit("5/minute")  # Limitar a 5 peticiones por minuto
+async def formulario(request: Request):
+    return {"message": "Formulario recibido"}
+
+# Manejo de error en caso de superar el límite
+@app.exception_handler(429)
+async def ratelimit_error(request, exc):
+    return JSONResponse(
+        status_code=429,
+        content={"message": "Rate limit exceeded"}
+    )
+
+
+@app.get("/config")
+async def get_config():
+    return JSONResponse(content={
+        "API_GET_DEPARTAMENTOS": os.getenv("API_GET_DEPARTAMENTOS"),
+        "API_GET_TIPIFICACIONES": os.getenv("API_GET_TIPIFICACIONES"),
+        "API_POST_FORMULARIO": os.getenv("API_POST_FORMULARIO"),
+        "API_UPLOAD_FOTO": os.getenv("API_UPLOAD_FOTO"),
+        "RECAPTCHA_SITE_KEY": os.getenv("RECAPTCHA_SITE_KEY"),  # Incluyendo la clave de reCAPTCHA
+        "RECAPTCHA_SECRET_KEY": os.getenv("RECAPTCHA_SECRET_KEY")
+    })
+
 
 # Configuración de SMB
 UPLOAD_FOLDER = Path("//10.10.0.239/Fotos")
@@ -39,7 +83,6 @@ def connect_to_smb_server(server, username, password):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error al conectar con el servidor SMB: {e}")
 
-# Función para escribir en el servidor SMB
 def upload_to_smb(file_data, filename, server, share_name, username, password):
     conn = None
     try:
@@ -60,13 +103,11 @@ def upload_to_smb(file_data, filename, server, share_name, username, password):
         if conn:
             conn.close()
 
-# Función para verificar extensiones permitidas
 def allowed_file(filename: str) -> bool:
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 @app.post("/upload")
 async def upload_file(file: UploadFile = File(...)):
-    # Verificar si el archivo tiene una extensión permitida
     if not allowed_file(file.filename):
         raise HTTPException(status_code=400, detail="Tipo de archivo no permitido")
     
@@ -76,15 +117,13 @@ async def upload_file(file: UploadFile = File(...)):
 
     # Obtener la fecha y hora actuales
     current_datetime = datetime.now().strftime("%d%m%Y%H%M")
-    
-    # Concatenar fecha y hora al nombre del archivo
     new_filename = f"{base_name}_{current_datetime}{extension}"
 
     # Parámetros para la conexión SMB
     server = "10.10.0.239"  # Dirección del servidor SMB
-    share_name = "fotos"    # Nombre del recurso compartido en el servidor
-    username = "derroche"    # Nombre de usuario
-    password = "nKVHB4m1S3"    # Contraseña
+    share_name = "fotos"    # Nombre del recurso compartido
+    username = "derroche"   # Nombre de usuario
+    password = "nKVHB4m1S3"  # Contraseña
 
     try:
         # Leer el contenido del archivo
