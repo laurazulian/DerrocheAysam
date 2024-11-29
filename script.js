@@ -23,26 +23,28 @@ document.addEventListener("DOMContentLoaded", async () => {
     async function initializeConfig() {
         const config = await fetchConfig();
         if (config) {
-            // Asignar las variables al objeto global appConfig
             appConfig = {
                 API_GET_DEPARTAMENTOS: config.API_GET_DEPARTAMENTOS,
                 API_GET_TIPIFICACIONES: config.API_GET_TIPIFICACIONES,
                 API_POST_FORMULARIO: config.API_POST_FORMULARIO,
                 API_UPLOAD_FOTO: config.API_UPLOAD_FOTO,
                 RECAPTCHA_SITE_KEY: config.RECAPTCHA_SITE_KEY,
-                RECAPTCHA_SECRET_KEY: config.RECAPTCHA_SECRET_KEY,
             };
-    
-            console.log("Variables de entorno cargadas:");
-            console.log(appConfig);
-    
-            // Configurar el CAPTCHA
+            console.log("Variables de entorno cargadas:", appConfig);
+
+            // Configurar reCAPTCHA
             loadRecaptchaScript();
+
+            // Cargar datos
+            await loadDepartamentos();
+            await loadTipificaciones();
         } else {
             console.error("No se pudo inicializar la configuración");
         }
     }
     
+    initializeConfig();
+
     function loadRecaptchaScript() {
         if (appConfig.RECAPTCHA_SITE_KEY) {
             // Cargar el script de reCAPTCHA v3 de forma dinámica
@@ -61,24 +63,16 @@ document.addEventListener("DOMContentLoaded", async () => {
             console.error("Site key no disponible");
         }
     }
-    
     function setupCaptcha() {
         if (appConfig.RECAPTCHA_SITE_KEY) {
             // Espera a que reCAPTCHA esté listo
             grecaptcha.ready(() => {
                 console.log("reCAPTCHA está listo");
     
-                // Generar un token para una acción específica
-                grecaptcha.execute(appConfig.RECAPTCHA_SITE_KEY, { action: 'submit' }).then(token => {
-                    console.log("Token generado:", token);
-    
-                    // Inserta el token en el campo oculto del formulario
-                    const recaptchaInput = document.getElementById("recaptcha_token");
-                    if (recaptchaInput) {
-                        recaptchaInput.value = token;
-                    } else {
-                        console.error("Campo oculto para reCAPTCHA no encontrado");
-                    }
+                // Ejecuta la acción sin necesidad de obtener el token
+                grecaptcha.execute(appConfig.RECAPTCHA_SITE_KEY, { action: 'submit' }).then(() => {
+                    console.log("Acción reCAPTCHA ejecutada");
+                    // Ya no se necesita hacer nada con el token
                 });
             });
         } else {
@@ -87,66 +81,8 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
     
     // Inicializar la configuración al cargar el documento
-    initializeConfig();
+   //    initializeConfig();
     
-    
-// Declarar un objeto para almacenar la configuración
-/*let appConfig = {};
-
-async function fetchConfig() {
-    try {
-        const response = await fetch("http://localhost:8000/config");
-        if (!response.ok) throw new Error("Error al obtener configuración");
-        const data = await response.json();
-        console.log("Configuración recibida:", data);
-        return data; // Devuelve la configuración obtenida
-    } catch (error) {
-        console.error("No se pudo cargar la configuración:", error);
-        return null;
-    }
-}
-
-async function initializeConfig() {
-    const config = await fetchConfig();
-    if (config) {
-        // Asignar las variables al objeto global appConfig
-        appConfig = {
-            API_GET_DEPARTAMENTOS: config.API_GET_DEPARTAMENTOS,
-            API_GET_TIPIFICACIONES: config.API_GET_TIPIFICACIONES,
-            API_POST_FORMULARIO: config.API_POST_FORMULARIO,
-            API_UPLOAD_FOTO: config.API_UPLOAD_FOTO,
-            RECAPTCHA_SITE_KEY: config.RECAPTCHA_SITE_KEY,
-            RECAPTCHA_SECRET_KEY: config.RECAPTCHA_SECRET_KEY,
-        };
-
-        console.log("Variables de entorno cargadas:");
-        console.log(appConfig);
-
-        // Configurar el CAPTCHA
-        setupCaptcha();
-    } else {
-        console.error("No se pudo inicializar la configuración");
-    }
-}
-
-function setupCaptcha() {
-    if (appConfig.RECAPTCHA_SITE_KEY) {
-        const recaptchaElement = document.querySelector('.g-recaptcha');
-        if (recaptchaElement) {
-            recaptchaElement.setAttribute('data-sitekey', appConfig.RECAPTCHA_SITE_KEY);
-        }
-    } else {
-        console.error("Site key no disponible");
-    }
-}
-
-// Inicializar la configuración al cargar el documento
-initializeConfig();*/
-
-
-    
-
-
     // Simula obtener datos desde una API
     async function fetchFromAPI(endpoint) {
         const response = await fetch(endpoint);
@@ -160,7 +96,7 @@ initializeConfig();*/
 
     async function loadDepartamentos() {
         try {
-            const response = await fetch(API_GET_DEPARTAMENTOS);
+            const response = await fetch(appConfig.API_GET_DEPARTAMENTOS);
             if (!response.ok) {
                 throw new Error(`Error HTTP: ${response.status}`);
             }
@@ -181,12 +117,11 @@ initializeConfig();*/
         }
     }
 
-    loadDepartamentos();
 
     // Carga datos en el select de tipificación
     async function loadTipificaciones() {
         try {
-            const response = await fetch(API_GET_TIPIFICACIONES);
+            const response = await fetch(appConfig.API_GET_TIPIFICACIONES);
             
             if (!response.ok) {
                 throw new Error(`Error HTTP: ${response.status}`);
@@ -208,8 +143,6 @@ initializeConfig();*/
         }
     }
     
-    loadTipificaciones();
-
     // Función para abrir el modal con un mensaje y cerrarlo automáticamente
         function openModal(message, autoClose = true, closeAfter = 3000) { // Por defecto, cierra tras 3 segundos
             const modalMessage = document.getElementById("modalMessage");
@@ -250,10 +183,10 @@ function validarFormulario() {
     }
 
     // Validar domicilio
-    const domicilioInput = document.getElementById("domicilio");
+   /* const domicilioInput = document.getElementById("domicilio");
     if (!validarDomicilio(domicilioInput)) {
         return; // Detener el envío si el domicilio no es válido
-    }
+    }*/
 
     // Validar número
     const numeroInput = document.getElementById("numero");
@@ -342,6 +275,7 @@ function validarDomicilio() {
     const casa = document.getElementById("ca").value.trim();
     const barrio = document.getElementById("barrio").value.trim();
 
+    console.log("Entra a las validaciones")
 
       // Verificar si se cumple la primera combinación (calle y número)
       const tieneCalleYNumero = calle && numero;
@@ -391,16 +325,25 @@ function validarDomicilio() {
     return true;
 }
 
-       // Validar el formulario antes de enviar
-        /*const archivoInput = document.getElementById("foto");
-        if (!validarArchivo(archivoInput)) {
-            return; // Detener el envío si no es válido
-        }*/
+    formulario.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        validarDomicilio()
 
-        const domicilioInput = document.getElementById("domicilio");
-        if (!validarDomicilio(domicilioInput)) {
+        
+        if (!validarDomicilio()) {
             return; // Detener el envío si el domicilio no es válido
         }
+
+       // Validar el formulario antes de enviar
+        const archivoInput = document.getElementById("foto");
+        if (!validarArchivo(archivoInput)) {
+            return; // Detener el envío si no es válido
+        }
+
+        /*const domicilioInput = document.getElementById("domicilio");
+        if (!validarDomicilio(domicilioInput)) {
+            return; // Detener el envío si el domicilio no es válido
+        }*/
 
         const fechaInput = document.getElementById("fecha_infraccion").value;
 
@@ -440,7 +383,7 @@ function validarDomicilio() {
         formData.append("p_barrio",document.getElementById("barrio").value);
         formData.append("p_casa",document.getElementById("ca").value);
         formData.append("p_manzana",document.getElementById("mza").value);
-        formData.append("recaptcha_response", captchaResponse);
+        //formData.append("recaptcha_response", captchaResponse);
     
         // Si hay un archivo, primero lo subimos y luego enviamos solo el nombre del archivo a la base de datos
         const fotoInput = document.getElementById('foto');
@@ -452,7 +395,7 @@ function validarDomicilio() {
             fileFormData.append("file", file);  // Aquí envías el archivo completo
     
             // Enviar el archivo a la API para obtener el nombre del archivo
-            const fileResponse = await fetch(API_UPLOAD_FOTO, {
+            const fileResponse = await fetch(appConfig.API_UPLOAD_FOTO, {
                 method: "POST",
                 body: fileFormData,
             });
@@ -471,7 +414,7 @@ function validarDomicilio() {
 
             overlay.classList.remove("hidden");
             // Enviar el formulario con el nombre del archivo
-            const response = await fetch(API_POST_FORMULARIO, {   
+            const response = await fetch(appConfig.API_POST_FORMULARIO, {   
                 method: "POST",
                 body: formData,
             });
@@ -497,4 +440,5 @@ function validarDomicilio() {
             // Oculta el overlay
             overlay.classList.add("hidden");
         }
-    });
+    })
+});
