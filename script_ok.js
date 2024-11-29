@@ -245,7 +245,7 @@ function validarManzana(input) {
 
 
 // Función para validar el archivo cargado
-function validarArchivo(inputFile) {
+/*function validarArchivo(inputFile) {
     const archivo = inputFile.files[0]; // Obtener el archivo cargado
     const tiposPermitidos = ["image/jpeg", "image/png", "image/jpg"];
     const tamanioMaximo = 10 * 1024 * 1024; // 10 MB
@@ -257,12 +257,43 @@ function validarArchivo(inputFile) {
 
     // Validar tipo de archivo
     if (!tiposPermitidos.includes(archivo.type)) {
+        // Detener el envío del formulario
         openModal("El archivo debe ser JPG, JPEG o PNG.");
         return false;
     }
 
     // Validar tamaño de archivo
     if (archivo.size > tamanioMaximo) {
+        openModal("El archivo no puede superar los 10MB.");
+        return false;
+    }
+
+    return true; // Todo está bien
+}*/
+
+function validarArchivo(event) {
+    const inputFile = document.getElementById("archivo");
+    const archivo = inputFile.files[0]; // Obtener el archivo cargado
+    const tiposPermitidos = ["image/jpeg", "image/png", "image/jpg"];
+    const tamanioMaximo = 10 * 1024 * 1024; // 10 MB
+
+    // Si no se seleccionó un archivo, no es un error
+    if (!archivo) {
+        return true; // Permitir continuar si no es obligatorio
+    }
+
+    // Validar tipo de archivo
+    if (!tiposPermitidos.includes(archivo.type)) {
+        // Detener el envío del formulario
+        event.preventDefault();
+        openModal("El archivo debe ser JPG, JPEG o PNG.");
+        return false;
+    }
+
+    // Validar tamaño de archivo
+    if (archivo.size > tamanioMaximo) {
+        // Detener el envío del formulario
+        event.preventDefault();
         openModal("El archivo no puede superar los 10MB.");
         return false;
     }
