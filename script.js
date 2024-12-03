@@ -14,10 +14,10 @@ document.addEventListener("DOMContentLoaded", async () => {
             //const response = await fetch("https://api.aysam.com.ar/config");
             if (!response.ok) throw new Error("Error al obtener configuración");
             const data = await response.json();
-            console.log("Configuración recibida:", data);
+            //console.log("Configuración recibida:", data);
             return data; // Devuelve la configuración obtenida
         } catch (error) {
-            console.error("No se pudo cargar la configuración:", error);
+            //console.error("No se pudo cargar la configuración:", error);
             return null;
         }
     }
@@ -32,7 +32,7 @@ document.addEventListener("DOMContentLoaded", async () => {
                 API_UPLOAD_FOTO: config.API_UPLOAD_FOTO,
                 RECAPTCHA_SITE_KEY: config.RECAPTCHA_SITE_KEY,
             };
-            console.log("Variables de entorno cargadas:", appConfig);
+            //console.log("Variables de entorno cargadas:", appConfig);
 
             // Configurar reCAPTCHA
             loadRecaptchaScript();
@@ -41,7 +41,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             await loadDepartamentos();
             await loadTipificaciones();
         } else {
-            console.error("No se pudo inicializar la configuración");
+            //console.error("No se pudo inicializar la configuración");
         }
     }
     
@@ -55,7 +55,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             //script.defer = true;
     
             script.onload = () => {
-                console.log("Script de reCAPTCHA cargado exitosamente");
+                //console.log("Script de reCAPTCHA cargado exitosamente");
                 setupCaptcha();
             };
     
@@ -68,16 +68,16 @@ document.addEventListener("DOMContentLoaded", async () => {
         if (appConfig.RECAPTCHA_SITE_KEY) {
             // Espera a que reCAPTCHA esté listo
             grecaptcha.ready(() => {
-                console.log("reCAPTCHA está listo");
+                //console.log("reCAPTCHA está listo");
     
                 // Ejecuta la acción sin necesidad de obtener el token
                 grecaptcha.execute(appConfig.RECAPTCHA_SITE_KEY, { action: 'submit' }).then(() => {
-                    console.log("Acción reCAPTCHA ejecutada");
+                    //console.log("Acción reCAPTCHA ejecutada");
                     // Ya no se necesita hacer nada con el token
                 });
             });
         } else {
-            console.error("Site key no disponible");
+            //console.error("Site key no disponible");
         }
     }
 
@@ -91,7 +91,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         if (response.ok) {
             return await response.json();
         } else {
-            console.error(`Error al cargar ${endpoint}`);
+            //console.error(`Error al cargar ${endpoint}`);
             return [];
         }
     }
@@ -115,7 +115,7 @@ document.addEventListener("DOMContentLoaded", async () => {
                 departamentoSelect.appendChild(option);
             });
         } catch (error) {
-            console.error("Error al cargar los departamentos:", error);
+            //console.error("Error al cargar los departamentos:", error);
         }
     }
 
@@ -141,7 +141,7 @@ document.addEventListener("DOMContentLoaded", async () => {
                 tipificacionSelect.appendChild(option);
             });
         } catch (error) {
-            console.error("Error al cargar las tipificaciones:", error);
+            //console.error("Error al cargar las tipificaciones:", error);
         }
     }
     
@@ -224,7 +224,7 @@ function validarSinCaracteresEspeciales(input) {
 
 // Función para validar que el campo contenga solo números
 function validarNumero(input) {
-    console.log("Elemento input recibido:", input); // Verificar el objeto input
+    //console.log("Elemento input recibido:", input); // Verificar el objeto input
     const valor = input.trim(); // Usar directamente el input si es un string
     const regex = /^[0-9]*$/; // Permite números vacíos o números
 
@@ -307,7 +307,7 @@ function validarDomicilio() {
     const casa = document.getElementById("ca").value.trim();
     const barrio = document.getElementById("barrio").value.trim();
 
-    console.log("Entra a las validaciones")
+    //console.log("Entra a las validaciones")
 
     function cantidadDeCaracteres(cadena){
         if (cadena.length > 150){
@@ -422,7 +422,7 @@ function validarDomicilio() {
     // Obtener el input de fecha
     const fechaInput = document.getElementById("fecha_infraccion");
     if (!fechaInput) {
-        console.error("No se encontró el input con ID 'fecha_infraccion'.");
+        //console.error("No se encontró el input con ID 'fecha_infraccion'.");
         return;
     }
 
@@ -456,7 +456,7 @@ function validarDomicilio() {
 
     // Asegúrate de que exista el campo de hora
     if (!horaInput) {
-        console.error("No se encontró el input con ID 'hora'.");
+        //console.error("No se encontró el input con ID 'hora'.");
         return;
     }
 
@@ -476,9 +476,9 @@ function validarDomicilio() {
     }
 
 // Si todo es válido
-    console.log("Formulario válido. Fecha:", fechaFormateada, "Hora:", horaSeleccionada);
+    //console.log("Formulario válido. Fecha:", fechaFormateada, "Hora:", horaSeleccionada);
         const numeroInput = document.getElementById("numero").value;
-        console.log("antes",numeroInput)
+        //console.log("antes",numeroInput)
         const manzanaInput = document.getElementById("mza").value.trim();
         const calleInput = document.getElementById("calle").value.trim();
         const barrioInput = document.getElementById("barrio").value.trim();
@@ -538,9 +538,9 @@ function validarDomicilio() {
                 method: "POST",
                 body: formData,
             });
-            for (let pair of formData.entries()) {
-                console.log(`${pair[0]}: ${pair[1]}`);
-            }
+            //for (let pair of formData.entries()) {
+            //    console.log(`${pair[0]}: ${pair[1]}`);
+            //}
 
     
             if (response.ok) {
