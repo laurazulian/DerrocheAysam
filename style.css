@@ -257,6 +257,9 @@ button[type="submit"]:hover {
         padding: 2vh 10px;
         margin-top: 0vh;
     }
+    .grecaptcha-badge {
+        bottom: 10vh !important;
+    }
 }
 
 /* Media Queries para pantallas muy grandes */
@@ -274,7 +277,9 @@ button[type="submit"]:hover {
         margin-top: 5px;
     }
 
-   
+    .grecaptcha-badge {
+        bottom: 239px !important;
+    }
 }
 
 

@@ -117,7 +117,7 @@ async def upload_file(file: UploadFile = File(...)):
 
     # Obtener la fecha y hora actuales
     current_datetime = datetime.now().strftime("%d%m%Y%H%M")
-    new_filename = f"{base_name}_{current_datetime}{extension}"
+    new_filename = f"{current_datetime}_{base_name}{extension}"
 
     # Parámetros para la conexión SMB
     server = "10.10.0.239"  # Dirección del servidor SMB
