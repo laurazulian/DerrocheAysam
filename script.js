@@ -4,12 +4,14 @@ document.addEventListener("DOMContentLoaded", async () => {
     const formulario = document.getElementById("formulario");
     const fileInput = document.getElementById("foto");
     const overlay = document.getElementById("overlay");
+    
 
     let appConfig = {};
 
     async function fetchConfig() {
         try {
             const response = await fetch("http://localhost:8000/config");
+            //const response = await fetch("https://api.aysam.com.ar/config");
             if (!response.ok) throw new Error("Error al obtener configuración");
             const data = await response.json();
             console.log("Configuración recibida:", data);
@@ -396,7 +398,7 @@ function validarDomicilio() {
        }
 
 
-        const fechaInput = document.getElementById("fecha_infraccion").value;
+        /*const fechaInput = document.getElementById("fecha_infraccion").value;
 
         if (!fechaInput) {
             openModal("Debe seleccionar una fecha válida.");
@@ -408,18 +410,87 @@ function validarDomicilio() {
 
         // Formatear la fecha como DD/MM/YY
         const fechaFormateada = `${dia}/${mes}/${anio}`;
-        //console.log("Fecha formateada para enviar:", fechaFormateada);
+        //console.log("Fecha formateada para enviar:", fechaFormateada);*/
 
+          // Obtener la fecha máxima (hoy)
+    const today = new Date();
+    const yyyy = today.getFullYear();
+    const mm = String(today.getMonth() + 1).padStart(2, '0'); // Mes con 2 dígitos
+    const dd = String(today.getDate()).padStart(2, '0');      // Día con 2 dígitos
+    const maxDate = `${yyyy}-${mm}-${dd}`;
+
+    // Obtener el input de fecha
+    const fechaInput = document.getElementById("fecha_infraccion");
+    if (!fechaInput) {
+        console.error("No se encontró el input con ID 'fecha_infraccion'.");
+        return;
+    }
+
+    // Establecer el atributo 'max'
+    fechaInput.setAttribute('max', maxDate);
+
+    // Validar la fecha seleccionada
+    const fechaSeleccionada = fechaInput.value;
+
+    // Si no hay fecha seleccionada
+    if (!fechaSeleccionada) {
+        openModal("Debe seleccionar una fecha válida.");
+        return;
+    }
+
+    // Verificar si la fecha seleccionada es posterior a la actual
+    if (fechaSeleccionada > maxDate) {
+        openModal("La fecha seleccionada no puede ser posterior a la actual.");
+        return;
+    }
+
+    // Validar el formato de la fecha y reformatarla
+    const [anio, mes, dia] = fechaSeleccionada.split('-');
+    const fechaFormateada = `${dia}/${mes}/${anio}`;
+    console.log("Fecha formateada para enviar:", fechaFormateada);
+    
+    
+    // Validar la hora
+    const currentHour = today.getHours();
+    const horaInput = document.getElementById("hora");
+
+    // Asegúrate de que exista el campo de hora
+    if (!horaInput) {
+        console.error("No se encontró el input con ID 'hora'.");
+        return;
+    }
+
+    // Obtener el valor ingresado
+    const horaSeleccionada = parseInt(horaInput.value, 10);
+
+    // Validar si el valor ingresado no es un número
+    if (isNaN(horaSeleccionada)) {
+        openModal("Por favor, ingrese una hora válida.");
+        return;
+    }
+
+    // Validar que la hora seleccionada no sea mayor que la hora actual
+    if (horaSeleccionada > currentHour) {
+        openModal("La hora de infracción no puede ser posterior a la hora actual.");
+        return;
+    }
+
+// Si todo es válido
+    console.log("Formulario válido. Fecha:", fechaFormateada, "Hora:", horaSeleccionada);
         const numeroInput = document.getElementById("numero").value;
         console.log("antes",numeroInput)
         const manzanaInput = document.getElementById("mza").value.trim();
         const calleInput = document.getElementById("calle").value.trim();
         const barrioInput = document.getElementById("barrio").value.trim();
+        
+
 
         if (!validarNumero(numeroInput)) return;
         if (!validarManzana(manzanaInput)) return;
         if (!validarSinCaracteresEspeciales(calleInput)) return;
         if (!validarSinCaracteresEspeciales(barrioInput)) return;
+         // Validar que se haya seleccionado una fecha
+     
         
         const formData = new FormData();
         overlay.classList.remove("hidden");
@@ -427,7 +498,7 @@ function validarDomicilio() {
         formData.append("p_dep_codigo", document.getElementById("departamento").value); // Número
         formData.append("p_tpf_id", document.getElementById("tipificacion").value); // Número
         formData.append("p_hora", document.getElementById("hora").value.replace(":", "") || null); // String (o null)
-        //formData.append("p_fecha", document.getElementById("fecha_infraccion").value);
+        formData.append("p_fecha", document.getElementById("fecha_infraccion").value);
         formData.append("p_fecha", fechaFormateada); 
         formData.append("p_calle",document.getElementById("calle").value);
         formData.append("p_numero",document.getElementById("numero").value);
