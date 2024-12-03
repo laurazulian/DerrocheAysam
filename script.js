@@ -14,10 +14,10 @@ document.addEventListener("DOMContentLoaded", async () => {
             //const response = await fetch("https://api.aysam.com.ar/config");
             if (!response.ok) throw new Error("Error al obtener configuración");
             const data = await response.json();
-            //console.log("Configuración recibida:", data);
+            console.log("Configuración recibida:", data);
             return data; // Devuelve la configuración obtenida
         } catch (error) {
-            //console.error("No se pudo cargar la configuración:", error);
+            console.error("No se pudo cargar la configuración:", error);
             return null;
         }
     }
@@ -32,7 +32,7 @@ document.addEventListener("DOMContentLoaded", async () => {
                 API_UPLOAD_FOTO: config.API_UPLOAD_FOTO,
                 RECAPTCHA_SITE_KEY: config.RECAPTCHA_SITE_KEY,
             };
-            //console.log("Variables de entorno cargadas:", appConfig);
+            console.log("Variables de entorno cargadas:", appConfig);
 
             // Configurar reCAPTCHA
             loadRecaptchaScript();
@@ -61,7 +61,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     
             document.head.appendChild(script);
         } else {
-            console.error("Site key no disponible");
+            //console.error("Site key no disponible");
         }
     }
     function setupCaptcha() {
