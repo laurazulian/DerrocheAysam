@@ -55,7 +55,7 @@ async def ratelimit_error(request, exc):
     )
 
 
-@app.get("/config")
+"""@app.get("/config")
 async def get_config():
     return JSONResponse(content={
         "API_GET_DEPARTAMENTOS": os.getenv("API_GET_DEPARTAMENTOS"),
@@ -64,7 +64,30 @@ async def get_config():
         "API_UPLOAD_FOTO": os.getenv("API_UPLOAD_FOTO"),
         "RECAPTCHA_SITE_KEY": os.getenv("RECAPTCHA_SITE_KEY"),  # Incluyendo la clave de reCAPTCHA
         "RECAPTCHA_SECRET_KEY": os.getenv("RECAPTCHA_SECRET_KEY")
-    })
+    })"""
+
+@app.get("/config")
+async def get_config():
+            environment = os.getenv("ENVIRONMENT", "TEST")  # Default to "prod" if not set
+            
+            if environment == "PROD":
+                return JSONResponse(content={
+                    "API_GET_DEPARTAMENTOS": os.getenv("API_GET_DEPARTAMENTOS_PROD"),
+                    "API_GET_TIPIFICACIONES": os.getenv("API_GET_TIPIFICACIONES_PROD"),
+                    "API_POST_FORMULARIO": os.getenv("API_POST_FORMULARIO_PROD"),
+                    "API_UPLOAD_FOTO": os.getenv("API_UPLOAD_FOTO_PROD"),
+                    "RECAPTCHA_SITE_KEY": os.getenv("RECAPTCHA_SITE_KEY_PROD"),
+                    "RECAPTCHA_SECRET_KEY": os.getenv("RECAPTCHA_SECRET_KEY_PROD")
+                })
+            else:
+                return JSONResponse(content={
+                    "API_GET_DEPARTAMENTOS": os.getenv("API_GET_DEPARTAMENTOS_TEST"),
+                    "API_GET_TIPIFICACIONES": os.getenv("API_GET_TIPIFICACIONES_TEST"),
+                    "API_POST_FORMULARIO": os.getenv("API_POST_FORMULARIO_TEST"),
+                    "API_UPLOAD_FOTO": os.getenv("API_UPLOAD_FOTO_TEST"),
+                    "RECAPTCHA_SITE_KEY": os.getenv("RECAPTCHA_SITE_KEY_TEST"),
+                    "RECAPTCHA_SECRET_KEY": os.getenv("RECAPTCHA_SECRET_KEY_TEST")
+                })
 
 
 # Configuración de SMB
