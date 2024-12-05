@@ -91,7 +91,7 @@ async def get_config():
 
 
 # Configuración de SMB
-UPLOAD_FOLDER = Path("//10.10.0.239/Fotos")
+UPLOAD_FOLDER = Path("//10.10.0.239/fotos")
 ALLOWED_EXTENSIONS = {'jpg', 'jpeg', 'png'}
 
 def connect_to_smb_server(server, username, password):
