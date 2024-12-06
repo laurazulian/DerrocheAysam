@@ -168,16 +168,27 @@ document.addEventListener("DOMContentLoaded", async () => {
             messageModal.style.display = "none";
         };
 
-        // Cierra el modal si se hace clic fuera de la ventana
-        window.onclick = function (event) {
-            const messageModal = document.getElementById("messageModal");
-            if (event.target == messageModal) {
-                messageModal.style.display = "none";
-            }
-        };    
-        
-        
     
+        // Validación de los campos en tiempo real
+        document.getElementById("foto").addEventListener("input", (e) => {
+            validarArchivo(e.target);
+        });
+    
+        document.getElementById("numero").addEventListener("input", (e) => {
+            validarNumero(e.target);
+        });
+    
+        document.getElementById("mza").addEventListener("input", (e) => {
+            validarManzana(e.target);
+        });
+    
+        document.getElementById("calle").addEventListener("input", (e) => {
+            validarSinCaracteresEspeciales(e.target);
+        });
+    
+        document.getElementById("barrio").addEventListener("input", (e) => {
+            validarSinCaracteresEspeciales(e.target);
+        });
 
 // Función principal para validar el formulario antes de enviarlo
 function validarFormulario() {
@@ -222,18 +233,25 @@ function validarSinCaracteresEspeciales(input) {
     return true; // Retorna true si pasa la validación
 }
 
-// Función para validar que el campo contenga solo números
 function validarNumero(input) {
-    //console.log("Elemento input recibido:", input); // Verificar el objeto input
-    const valor = input.trim(); // Usar directamente el input si es un string
+    if (!input || typeof input.value !== "string") {
+        console.error("El argumento 'input' no es un elemento válido:", input);
+        openModal("Error interno: entrada inválida para la validación.");
+        return false;
+    }
+
+    const valor = input.value.trim(); // Ahora seguro de que input.value existe
     const regex = /^[0-9]*$/; // Permite números vacíos o números
 
-    if (valor && !regex.test(valor)) { // Validar el contenido
+    if (valor && !regex.test(valor)) {
         openModal("El número solo puede contener dígitos.");
         return false;
     }
     return true; // Retorna true si pasa la validación
 }
+
+
+
 
 function validarManzana(input) {
     const valor = input.trim(); // Elimina espacios
@@ -247,7 +265,7 @@ function validarManzana(input) {
 
 
 // Función para validar el archivo cargado
-/*function validarArchivo(inputFile) {
+function validarArchivo(inputFile) {
     const archivo = inputFile.files[0]; // Obtener el archivo cargado
     const tiposPermitidos = ["image/jpeg", "image/png", "image/jpg"];
     const tamanioMaximo = 10 * 1024 * 1024; // 10 MB
@@ -271,7 +289,7 @@ function validarManzana(input) {
     }
 
     return true; // Todo está bien
-}*/
+}
 
 function validarArchivo(inputFile) {
     const archivo = inputFile.files[0]; // Obtener el archivo cargado
@@ -299,40 +317,24 @@ function validarArchivo(inputFile) {
 }
 
 
-// Función para validar el domicilio
 function validarDomicilio() {
-    const calle = document.getElementById("calle").value.trim();
-    const numero = document.getElementById("numero").value.trim();
-    const manzana = document.getElementById("mza").value.trim();
-    const casa = document.getElementById("ca").value.trim();
-    const barrio = document.getElementById("barrio").value.trim();
+    const calleElement = document.getElementById("calle");
+    const numeroElement = document.getElementById("numero");
+    const manzanaElement = document.getElementById("mza");
+    const casaElement = document.getElementById("ca");
+    const barrioElement = document.getElementById("barrio");
 
-    //console.log("Entra a las validaciones")
-
-    function cantidadDeCaracteres(cadena){
-        if (cadena.length > 150){
-            openModal("No puede ingresar más de 150 caracteres.");
-            return false
-        }
-        return true;
+    if (!calleElement || !numeroElement || !manzanaElement || !casaElement || !barrioElement) {
+        console.error("Uno o más elementos no se encuentran en el DOM.");
+        return false;
     }
 
-    if (!cantidadDeCaracteres(calle)){
-        return false
-    }
+    const calle = calleElement.value.trim();
+    const numero = numeroElement.value.trim();
+    const manzana = manzanaElement.value.trim();
+    const casa = casaElement.value.trim();
+    const barrio = barrioElement.value.trim();
 
-    if (!cantidadDeCaracteres(numero)){
-        return false
-    }
-    if (!cantidadDeCaracteres(casa)){
-        return false
-    }
-    if (!cantidadDeCaracteres(barrio)){
-        return false
-    }
-    if (!cantidadDeCaracteres(manzana)){
-        return false
-    }
 
       // Verificar si se cumple la primera combinación (calle y número)
       const tieneCalleYNumero = calle && numero;
@@ -485,7 +487,7 @@ function validarDomicilio() {
         
 
 
-        if (!validarNumero(numeroInput)) return;
+        //if (!validarNumero(numeroInput)) return;
         if (!validarManzana(manzanaInput)) return;
         if (!validarSinCaracteresEspeciales(calleInput)) return;
         if (!validarSinCaracteresEspeciales(barrioInput)) return;
@@ -538,9 +540,10 @@ function validarDomicilio() {
                 method: "POST",
                 body: formData,
             });
-            //for (let pair of formData.entries()) {
-            //    console.log(`${pair[0]}: ${pair[1]}`);
-            //}
+
+            for (let pair of formData.entries()) {
+                console.log(`${pair[0]}: ${pair[1]}`);
+            }
 
     
             if (response.ok) {

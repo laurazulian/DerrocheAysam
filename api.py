@@ -2,7 +2,9 @@ from fastapi import FastAPI, File, UploadFile, HTTPException, Request
 from fastapi.responses import JSONResponse, HTMLResponse, StreamingResponse
 from smb.SMBConnection import SMBConnection
 from fastapi.responses import FileResponse
+from typing import Dict, Union
 import os
+import smbclient
 from pathlib import Path
 from datetime import datetime
 from fastapi.middleware.cors import CORSMiddleware
@@ -179,7 +181,7 @@ def read_from_smb(filename: str, server: str, share_name: str, username: str, pa
 
 
 
-def get_file_from_smb(filename: str, server: str, share_name: str, username: str, password: str) -> dict[str, BytesIO | str]:
+def get_file_from_smb(filename: str, server: str, share_name: str, username: str, password: str) -> Dict[str, Union[BytesIO, str]]:
     """
     Función para obtener un archivo desde el servidor SMB y la ruta del archivo.
     """
@@ -247,10 +249,11 @@ async def upload_file(file: UploadFile = File(...)):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error en el procesamiento del archivo: {e}")
 
+
 @app.get("/file/{new_filename}")
 async def get_file(new_filename: str):
     """
-    Endpoint para leer un archivo desde el servidor SMB y devolverlo directamente.
+    Endpoint para obtener la ruta del archivo en el servidor SMB y devolverla como JSON.
     """
     server = "10.10.0.239"       # Dirección del servidor SMB
     share_name = "fotos"         # Nombre del recurso compartido
@@ -258,26 +261,18 @@ async def get_file(new_filename: str):
     password = "56gybwbAy0Yg"         # Contraseña para la conexión SMB
 
     try:
-        # Obtener el archivo y su ruta lógica desde el servidor SMB
-        file_data = get_file_from_smb(new_filename, server, share_name, username, password)
+        # Configurar smbclient con las credenciales
+        smbclient.ClientConfig(username=username, password=password)
 
-        file_like = file_data["file"]  # Archivo en BytesIO
-        file_path = file_data["path"]  # Ruta del archivo en el servidor SMB
+        # Ruta completa del archivo en el servidor SMB
+        file_path = f"\\\\{server}\\{share_name}\\{new_filename}"
 
-        # Detectar el tipo de contenido basado en la extensión del archivo
-        file_extension = new_filename.rsplit('.', 1)[-1].lower()
-        if file_extension == "jpg":
-            media_type = "image/jpeg"
-        elif file_extension == "png":
-            media_type = "image/png"
-        else:
-            media_type = "application/octet-stream"  # Tipo genérico para otros archivos
+        # Verificar si el archivo existe usando smbclient
+        if not smbclient.path.exists(file_path):
+            raise HTTPException(status_code=404, detail="Archivo no encontrado")
 
-        # Retornar tanto el archivo como su ruta
-        return {
-            "file": FileResponse(file_like, media_type=media_type, filename=new_filename),
-            "path": file_path
-        }
+        # Retornar el JSON con la ruta del archivo
+        return {"file_path": file_path}
 
     except HTTPException as e:
         # Relanzar errores HTTP definidos
@@ -285,6 +280,7 @@ async def get_file(new_filename: str):
     except Exception as e:
         # Manejar errores inesperados
         raise HTTPException(status_code=500, detail=f"Error inesperado: {e}")
+
 
 
 @app.get("/image/{filename}")
@@ -301,18 +297,9 @@ async def get_image_from_smb(filename: str):
         # Obtener el archivo desde el servidor SMB
         file_like = read_from_smb(filename, server, share_name, username, password)
 
-        # Detectar el tipo de contenido basado en la extensión del archivo
-        file_extension = filename.rsplit('.', 1)[-1].lower()
-        if file_extension == "jpg":
-            media_type = "image/jpeg"
-        elif file_extension == "png":
-            media_type = "image/png"
-        else:
-            media_type = "application/octet-stream"  # Tipo genérico para otros archivos
-
         # Retornar la imagen directamente desde la memoria
         file_like.seek(0)  # Asegurar que el puntero esté al principio del archivo
-        return StreamingResponse(file_like, media_type=media_type, headers={
+        return StreamingResponse(file_like, headers={
             "Content-Disposition": f"inline; filename={filename}"  # Mostrar en el navegador
         })
 
