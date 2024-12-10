@@ -146,7 +146,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
     
     // Función para abrir el modal con un mensaje y cerrarlo automáticamente
-        function openModal(message, autoClose = true, closeAfter = 3000) { // Por defecto, cierra tras 3 segundos
+       /* function openModal(message, autoClose = true, closeAfter = 3000) { // Por defecto, cierra tras 3 segundos
             const modalMessage = document.getElementById("modalMessage");
             const messageModal = document.getElementById("messageModal");
             
@@ -160,6 +160,31 @@ document.addEventListener("DOMContentLoaded", async () => {
                 }, closeAfter);
             }
         }
+*/
+        function openModal(message, autoClose = true, closeAfter = 4000, showCheck = false, showCross = false) {
+            const modalMessage = document.getElementById("modalMessage");
+            const messageModal = document.getElementById("messageModal");
+            const checkIcon = document.getElementById("checkIcon");
+            const crossIcon = document.getElementById("crossIcon");
+
+            // Configurar el mensaje
+            modalMessage.textContent = message;
+
+            // Mostrar u ocultar los íconos según los parámetros
+            checkIcon.style.display = showCheck ? "inline-block" : "none";
+            crossIcon.style.display = showCross ? "inline-block" : "none";
+
+            // Mostrar el modal
+            messageModal.style.display = "block";
+
+            // Cerrar automáticamente el modal si está habilitado
+            if (autoClose) {
+                setTimeout(() => {
+                    messageModal.style.display = "none";
+                }, closeAfter);
+            }
+        }
+
 
         // Función para cerrar el modal manualmente
         const modalClose = document.getElementById("modalClose");
@@ -168,27 +193,16 @@ document.addEventListener("DOMContentLoaded", async () => {
             messageModal.style.display = "none";
         };
 
+        // Cierra el modal si se hace clic fuera de la ventana
+        window.onclick = function (event) {
+            const messageModal = document.getElementById("messageModal");
+            if (event.target == messageModal) {
+                messageModal.style.display = "none";
+            }
+        };    
+        
+        
     
-        // Validación de los campos en tiempo real
-        document.getElementById("foto").addEventListener("input", (e) => {
-            validarArchivo(e.target);
-        });
-    
-        document.getElementById("numero").addEventListener("input", (e) => {
-            validarNumero(e.target);
-        });
-    
-        document.getElementById("mza").addEventListener("input", (e) => {
-            validarManzana(e.target);
-        });
-    
-        document.getElementById("calle").addEventListener("input", (e) => {
-            validarSinCaracteresEspeciales(e.target);
-        });
-    
-        document.getElementById("barrio").addEventListener("input", (e) => {
-            validarSinCaracteresEspeciales(e.target);
-        });
 
 // Función principal para validar el formulario antes de enviarlo
 function validarFormulario() {
@@ -227,37 +241,34 @@ function validarFormulario() {
 function validarSinCaracteresEspeciales(input) {
     const regex = /^[a-zA-Z0-9\s]*$/;  // Permite letras, números y espacios
     if (!regex.test(input.value)) {
-        openModal("Ningún campo puede contener caracteres especiales.");
+        
+        openModal("Ningún campo puede contener caracteres especiales.", true, 4000, false, true);
+
         return false;
     }
     return true; // Retorna true si pasa la validación
 }
 
+// Función para validar que el campo contenga solo números
 function validarNumero(input) {
-    if (!input || typeof input.value !== "string") {
-        console.error("El argumento 'input' no es un elemento válido:", input);
-        openModal("Error interno: entrada inválida para la validación.");
-        return false;
-    }
-
-    const valor = input.value.trim(); // Ahora seguro de que input.value existe
+    //console.log("Elemento input recibido:", input); // Verificar el objeto input
+    const valor = input.trim(); // Usar directamente el input si es un string
     const regex = /^[0-9]*$/; // Permite números vacíos o números
 
-    if (valor && !regex.test(valor)) {
-        openModal("El número solo puede contener dígitos.");
+    if (valor && !regex.test(valor)) { // Validar el contenido
+        
+        openModal("El número solo puede contener dígitos.", true, 4000, false, true);
         return false;
     }
     return true; // Retorna true si pasa la validación
 }
-
-
-
 
 function validarManzana(input) {
     const valor = input.trim(); // Elimina espacios
     const regex = /^[a-zA-Z0-9]{1,2}$/; // Permite entre 1 y 2 letras o números
     if (valor && !regex.test(valor)) {
-        openModal("La manzana debe contener entre 1 y 2 letras o números.");
+        openModal("La manzana debe contener entre 1 y 2 letras o números.", true, 4000, false, true);
+        
         return false;
     }
     return true; // Retorna true si pasa la validación o está vacío
@@ -265,7 +276,7 @@ function validarManzana(input) {
 
 
 // Función para validar el archivo cargado
-function validarArchivo(inputFile) {
+/*function validarArchivo(inputFile) {
     const archivo = inputFile.files[0]; // Obtener el archivo cargado
     const tiposPermitidos = ["image/jpeg", "image/png", "image/jpg"];
     const tamanioMaximo = 10 * 1024 * 1024; // 10 MB
@@ -289,7 +300,7 @@ function validarArchivo(inputFile) {
     }
 
     return true; // Todo está bien
-}
+}*/
 
 function validarArchivo(inputFile) {
     const archivo = inputFile.files[0]; // Obtener el archivo cargado
@@ -303,13 +314,15 @@ function validarArchivo(inputFile) {
 
     // Validar tipo de archivo
     if (!tiposPermitidos.includes(archivo.type)) {
-        openModal("El archivo debe ser JPG, JPEG o PNG.");
+        //openModal("El archivo debe ser JPG, JPEG o PNG.");
+        openModal("El archivo debe ser JPG, JPEG o PNG.", true, 4000, false, true);
+
         return false;
     }
 
     // Validar tamaño de archivo
     if (archivo.size > tamanioMaximo) {
-        openModal("El archivo no puede superar los 10MB.");
+        openModal("El archivo no puede superar los 10MB.", true, 4000, false, true);
         return false;
     }
 
@@ -317,24 +330,40 @@ function validarArchivo(inputFile) {
 }
 
 
+// Función para validar el domicilio
 function validarDomicilio() {
-    const calleElement = document.getElementById("calle");
-    const numeroElement = document.getElementById("numero");
-    const manzanaElement = document.getElementById("mza");
-    const casaElement = document.getElementById("ca");
-    const barrioElement = document.getElementById("barrio");
+    const calle = document.getElementById("calle").value.trim();
+    const numero = document.getElementById("numero").value.trim();
+    const manzana = document.getElementById("mza").value.trim();
+    const casa = document.getElementById("ca").value.trim();
+    const barrio = document.getElementById("barrio").value.trim();
 
-    if (!calleElement || !numeroElement || !manzanaElement || !casaElement || !barrioElement) {
-        console.error("Uno o más elementos no se encuentran en el DOM.");
-        return false;
+    //console.log("Entra a las validaciones")
+
+    function cantidadDeCaracteres(cadena){
+        if (cadena.length > 150){
+            openModal("No puede ingresar más de 150 caracteres.", true, 4000, false, true);
+            return false
+        }
+        return true;
     }
 
-    const calle = calleElement.value.trim();
-    const numero = numeroElement.value.trim();
-    const manzana = manzanaElement.value.trim();
-    const casa = casaElement.value.trim();
-    const barrio = barrioElement.value.trim();
+    if (!cantidadDeCaracteres(calle)){
+        return false
+    }
 
+    if (!cantidadDeCaracteres(numero)){
+        return false
+    }
+    if (!cantidadDeCaracteres(casa)){
+        return false
+    }
+    if (!cantidadDeCaracteres(barrio)){
+        return false
+    }
+    if (!cantidadDeCaracteres(manzana)){
+        return false
+    }
 
       // Verificar si se cumple la primera combinación (calle y número)
       const tieneCalleYNumero = calle && numero;
@@ -346,36 +375,38 @@ function validarDomicilio() {
     
     // Validación: Si se ingresa número, debe haber calle
     if (numero && !calle) {
-        openModal("Si se ingresa un número, debe ingresar una calle.");
+        openModal("Si se ingresa un número, debe ingresar una calle.", true, 3000, false, true);
+
+        //openModal("Si se ingresa un número, debe ingresar una calle.");
         return false;
     }
 
     // Validación: Si se ingresa manzana, debe haber casa
     if (manzana && !casa) {
-        openModal("Si se ingresa una manzana, debe ingresar una casa.");
+        openModal("Si se ingresa una manzana, debe ingresar una casa.", true, 4000, false, true);
         return false;
     }
 
     // Validación: Si se ingresa casa, debe haber manzana
     if (casa && !manzana) {
-        openModal("Si se ingresa una casa, debe ingresar una manzana.");
+        openModal("Si se ingresa una casa, debe ingresar una manzana.", true, 4000, false, true);
         return false;
     }
 
     // Validación: Si se ingresa manzana o casa, debe haber barrio
     if ((manzana || casa) && !barrio) {
-        openModal("Si se ingresa una manzana o una casa, debe ingresar un barrio.");
+        openModal("Si se ingresa una manzana o una casa, debe ingresar un barrio.", true, 4000, false, true);
         return false;
     }
 
     // Validación: Si se ingresa calle, se requiere número, pero solo si no hay manzana ni casa
     if (calle && !numero && !manzana && !casa) {
-        openModal("Si se ingresa una calle, debe ingresar un número.");
+        openModal("Si se ingresa una calle, debe ingresar un número.", true, 4000, false, true);
         return false;
     }
 
     if (!tieneCalleYNumero && !tieneBarrioManzanaCasa) {
-        openModal("Debe completar Calle y Número o Barrio, Manzana y Casa.");
+        openModal("Debe completar Calle y Número o Barrio, Manzana y Casa.", true, 4000, false, true);
         return false;
     }
 
@@ -415,7 +446,7 @@ function validarDomicilio() {
         //console.log("Fecha formateada para enviar:", fechaFormateada);*/
 
           // Obtener la fecha máxima (hoy)
-    /*const today = new Date();
+    const today = new Date();
     const yyyy = today.getFullYear();
     const mm = String(today.getMonth() + 1).padStart(2, '0'); // Mes con 2 dígitos
     const dd = String(today.getDate()).padStart(2, '0');      // Día con 2 dígitos
@@ -436,20 +467,20 @@ function validarDomicilio() {
 
     // Si no hay fecha seleccionada
     if (!fechaSeleccionada) {
-        openModal("Debe seleccionar una fecha válida.");
+        openModal("Debe seleccionar una fecha válida.", true, 4000, false, true);
         return;
     }
 
     // Verificar si la fecha seleccionada es posterior a la actual
     if (fechaSeleccionada > maxDate) {
-        openModal("La fecha seleccionada no puede ser posterior a la actual.");
+        openModal("La fecha seleccionada no puede ser posterior a la actual.", true, 4000, false, true);
         return;
     }
 
     // Validar el formato de la fecha y reformatarla
     const [anio, mes, dia] = fechaSeleccionada.split('-');
     const fechaFormateada = `${dia}/${mes}/${anio}`;
-    console.log("Fecha formateada para enviar:", fechaFormateada);
+    //console.log("Fecha formateada para enviar:", fechaFormateada);
     
     
     // Validar la hora
@@ -467,83 +498,15 @@ function validarDomicilio() {
 
     // Validar si el valor ingresado no es un número
     if (isNaN(horaSeleccionada)) {
-        openModal("Por favor, ingrese una hora válida.");
+        openModal("Por favor, ingrese una hora válida.", true, 4000, false, true);
         return;
     }
 
     // Validar que la hora seleccionada no sea mayor que la hora actual
     if (horaSeleccionada > currentHour) {
-        openModal("La hora de infracción no puede ser posterior a la hora actual.");
+        openModal("La hora de infracción no puede ser posterior a la hora actual.", true, 4000, false, true);
         return;
-    }*/
-
-        const today = new Date();
-        const yyyy = today.getFullYear();
-        const mm = String(today.getMonth() + 1).padStart(2, '0'); // Mes con 2 dígitos
-        const dd = String(today.getDate()).padStart(2, '0');      // Día con 2 dígitos
-        const maxDate = `${yyyy}-${mm}-${dd}`;
-        
-        // Obtener el input de fecha
-        const fechaInput = document.getElementById("fecha_infraccion");
-        if (!fechaInput) {
-            //console.error("No se encontró el input con ID 'fecha_infraccion'.");
-            return;
-        }
-        
-        // Establecer el atributo 'max'
-        fechaInput.setAttribute('max', maxDate);
-        
-        // Validar la fecha seleccionada
-        const fechaSeleccionada = fechaInput.value;
-        
-        // Si no hay fecha seleccionada
-        if (!fechaSeleccionada) {
-            openModal("Debe seleccionar una fecha válida.");
-            return;
-        }
-        
-        // Verificar si la fecha seleccionada es posterior a la actual
-        if (fechaSeleccionada > maxDate) {
-            openModal("La fecha seleccionada no puede ser posterior a la actual.");
-            return;
-        }
-        
-        // Validar el formato de la fecha y reformatarla
-        const [anio, mes, dia] = fechaSeleccionada.split('-');
-        const fechaFormateada = `${dia}/${mes}/${anio}`;
-        console.log("Fecha formateada para enviar:", fechaFormateada);
-        
-        // Validar la hora
-        const currentHour = today.getHours();
-        const horaInput = document.getElementById("hora");
-        
-        // Asegúrate de que exista el campo de hora
-        if (!horaInput) {
-            //console.error("No se encontró el input con ID 'hora'.");
-            return;
-        }
-        
-        // Obtener el valor ingresado
-        const horaSeleccionada = parseInt(horaInput.value, 10);
-        
-        // Validar si el valor ingresado no es un número
-        if (isNaN(horaSeleccionada)) {
-            openModal("Por favor, ingrese una hora válida.");
-            return;
-        }
-        
-        // Validar la hora dependiendo de la fecha seleccionada
-        if (fechaSeleccionada === maxDate) {
-            // Si es la fecha actual, validar que la hora no sea posterior a la actual
-            if (horaSeleccionada > currentHour) {
-                openModal("La hora de infracción no puede ser posterior a la hora actual.");
-                return;
-            }
-        } else if (fechaSeleccionada < maxDate) {
-            // Si es una fecha anterior, permitir cualquier hora
-            console.log("Fecha anterior a hoy: la hora puede ser cualquiera.");
-        }
-        
+    }
 
 // Si todo es válido
     //console.log("Formulario válido. Fecha:", fechaFormateada, "Hora:", horaSeleccionada);
@@ -555,7 +518,7 @@ function validarDomicilio() {
         
 
 
-        //if (!validarNumero(numeroInput)) return;
+        if (!validarNumero(numeroInput)) return;
         if (!validarManzana(manzanaInput)) return;
         if (!validarSinCaracteresEspeciales(calleInput)) return;
         if (!validarSinCaracteresEspeciales(barrioInput)) return;
@@ -597,8 +560,7 @@ function validarDomicilio() {
                 const filename = fileData.filename; // Obtener el nombre del archivo
                 formData.append("p_foto", filename);  // Enviar solo el nombre del archivo a la base de datos
             } else {
-                overlay.classList.add("hidden");
-                openModal("Error al subir el archivo");
+                openModal("Error al subir el archivo", true, 4000, false, true);
                 return;
             }
         }
@@ -609,26 +571,26 @@ function validarDomicilio() {
                 method: "POST",
                 body: formData,
             });
-
-            for (let pair of formData.entries()) {
-                console.log(`${pair[0]}: ${pair[1]}`);
-            }
+            //for (let pair of formData.entries()) {
+            //    console.log(`${pair[0]}: ${pair[1]}`);
+            //}
 
     
             if (response.ok) {
                 const result = await response.text(); 
                 //console.log("Respuesta de la API:", result);
-                openModal("Gracias. Su denuncia ha sido registrada.");
+                //openModal("Gracias. Su denuncia ha sido registrada.");
+                openModal("Gracias. Su denuncia ha sido registrada.", true, 4000, true, false);
+
                 formulario.reset();
             } else {
                 const error = await response.text();
                 //console.error("Error en la respuesta:", error);
-                openModal("Hubo un problema al enviar los datos. Verifica tu información.");
+                openModal("Hubo un problema al enviar los datos. Verifica tu información.", true, 4000, false, true);
             }
         } catch (error) {
-            overlay.classList.add("hidden");
             //console.error("Error al enviar los datos:", error);
-            openModal("Ocurrió un error inesperado al enviar el formulario.");
+            openModal("Ocurrió un error inesperado al enviar el formulario.", true, 4000, false, true);
          } finally {
             // Oculta el overlay
             overlay.classList.add("hidden");
