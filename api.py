@@ -73,7 +73,7 @@ async def get_config():
 
 @app.get("/config")
 async def get_config():
-            environment = os.getenv("ENVIRONMENT", "TEST")  # Default to "prod" if not set
+            environment = os.getenv("ENVIRONMENT", "PROD")  # Default to "prod" if not set
             
             if environment == "PROD":
                 return JSONResponse(content={
@@ -100,15 +100,21 @@ async def get_config():
 ALLOWED_EXTENSIONS = {'jpg', 'jpeg', 'png'}
 # Configuración
 server = "10.10.0.239"  # Dirección del servidor SMB
-share_name = "fotosTEST"    # Nombre del recurso compartido
-username = "derrochetest"   # Nombre de usuario
+#share_name = "fotosTEST"    # Nombre del recurso compartido
+#username = "derrochetest"   # Nombre de usuario
+#password = "Q929IjRfMg6p"  # Contraseña
+#read_username = "leederrochetest"
+#read_password = "57LXz7q2g2BJ"
+
+share_name = "fotosPROD"    # Nombre del recurso compartido
+username = "derrocheprod"   # Nombre de usuario
 password = "Q929IjRfMg6p"  # Contraseña
-read_username = "leederrochetest"
-read_password = "57LXz7q2g2BJ"
+read_username = "p0fsWh253JJq"
+read_password = "ycu776IjSt79"
 
 class Config:
     # Leer el entorno (por defecto "TEST")
-    ENVIRONMENT = os.getenv("ENVIRONMENT", "TEST")
+    ENVIRONMENT = os.getenv("ENVIRONMENT", "PROD")
     
     # Configuración de SMB por entorno
     SMB_CONFIG = {
@@ -246,26 +252,6 @@ def get_file_from_smb(filename: str, server: str, share_name: str, username: str
         if conn:
             conn.close()
 
-"""def test_write_permissions(directory_path: str):
-    try:
-        test_file_path = os.path.join(directory_path, "test_write.txt")
-        with open(test_file_path, 'w') as f:
-            f.write("Prueba de escritura.")
-        os.remove(test_file_path)
-        print("Tienes permisos para escribir.")
-    except PermissionError:
-        print("No tienes permisos para escribir.")
-    except Exception as e:
-        print(f"Error inesperado: {e}")
-
-if __name__ == "__main__":
-    # Define la ruta del directorio a probar
-    directory_path = "\\\\10.10.0.239\\fotosTEST"  # Ajusta según tu sistema operativo
-
-    # Llama a la función de prueba
-    test_write_permissions(directory_path)"""
-
-
 
 def allowed_file(filename: str) -> bool:
     """Verifica si el archivo tiene una extensión permitida"""
@@ -287,12 +273,12 @@ async def upload_file(file: UploadFile = File(...)):
 
     # Parámetros para la conexión SMB
     server = "10.10.0.239"  # Dirección del servidor SMB
-    share_name = "fotosTEST"    # Nombre del recurso compartido
-    username = "derrochetest"   # Nombre de usuario
-    password = "Q929IjRfMg6p"  # Contraseña
-    #share_name = "fotosPROD"    # Nombre del recurso compartido
-    #username = "derrocheprod"   # Nombre de usuario
-    #password = "p0fsWh253JJq"  # Contraseña
+    #share_name = "fotosTEST"    # Nombre del recurso compartido
+    #username = "derrochetest"   # Nombre de usuario
+    #password = "Q929IjRfMg6p"  # Contraseña
+    share_name = "fotosPROD"    # Nombre del recurso compartido
+    username = "derrocheprod"   # Nombre de usuario
+    password = "p0fsWh253JJq"  # Contraseña
 
     try:
         # Leer el contenido del archivo
@@ -363,9 +349,12 @@ async def get_image_from_smb(filename: str):
    # password = config.get('SMB_PASSWORD_ESCRITURA')         # Contraseña para la conexión SMB
 
     server = "10.10.0.239"  # Dirección del servidor SMB
-    share_name = "fotosTEST"    # Nombre del recurso compartido
-    username = "derrochetest"   # Nombre de usuario
-    password = "Q929IjRfMg6p"  # Contraseña
+    #share_name = "fotosTEST"    # Nombre del recurso compartido
+    #username = "derrochetest"   # Nombre de usuario
+    #password = "Q929IjRfMg6p"  # Contraseña
+    share_name = "fotosPROD"    # Nombre del recurso compartido
+    username = "p0fsWh253JJq"
+    password = "ycu776IjSt79"
 
     try:
         # Obtener el archivo desde el servidor SMB
