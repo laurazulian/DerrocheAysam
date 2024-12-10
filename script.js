@@ -10,8 +10,8 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     async function fetchConfig() {
         try {
-            const response = await fetch("http://localhost:8000/config");
-            //const response = await fetch("https://api.aysam.com.ar/config");
+            //const response = await fetch("http://localhost:8000/config");
+            const response = await fetch("https://api.aysam.com.ar/config");
             if (!response.ok) throw new Error("Error al obtener configuración");
             const data = await response.json();
             console.log("Configuración recibida:", data);
@@ -146,7 +146,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
     
     // Función para abrir el modal con un mensaje y cerrarlo automáticamente
-        function openModal(message, autoClose = true, closeAfter = 3000) { // Por defecto, cierra tras 3 segundos
+       /* function openModal(message, autoClose = true, closeAfter = 3000) { // Por defecto, cierra tras 3 segundos
             const modalMessage = document.getElementById("modalMessage");
             const messageModal = document.getElementById("messageModal");
             
@@ -160,6 +160,31 @@ document.addEventListener("DOMContentLoaded", async () => {
                 }, closeAfter);
             }
         }
+*/
+        function openModal(message, autoClose = true, closeAfter = 4000, showCheck = false, showCross = false) {
+            const modalMessage = document.getElementById("modalMessage");
+            const messageModal = document.getElementById("messageModal");
+            const checkIcon = document.getElementById("checkIcon");
+            const crossIcon = document.getElementById("crossIcon");
+
+            // Configurar el mensaje
+            modalMessage.textContent = message;
+
+            // Mostrar u ocultar los íconos según los parámetros
+            checkIcon.style.display = showCheck ? "inline-block" : "none";
+            crossIcon.style.display = showCross ? "inline-block" : "none";
+
+            // Mostrar el modal
+            messageModal.style.display = "block";
+
+            // Cerrar automáticamente el modal si está habilitado
+            if (autoClose) {
+                setTimeout(() => {
+                    messageModal.style.display = "none";
+                }, closeAfter);
+            }
+        }
+
 
         // Función para cerrar el modal manualmente
         const modalClose = document.getElementById("modalClose");
@@ -216,7 +241,9 @@ function validarFormulario() {
 function validarSinCaracteresEspeciales(input) {
     const regex = /^[a-zA-Z0-9\s]*$/;  // Permite letras, números y espacios
     if (!regex.test(input.value)) {
-        openModal("Ningún campo puede contener caracteres especiales.");
+        
+        openModal("Ningún campo puede contener caracteres especiales.", true, 4000, false, true);
+
         return false;
     }
     return true; // Retorna true si pasa la validación
@@ -229,7 +256,8 @@ function validarNumero(input) {
     const regex = /^[0-9]*$/; // Permite números vacíos o números
 
     if (valor && !regex.test(valor)) { // Validar el contenido
-        openModal("El número solo puede contener dígitos.");
+        
+        openModal("El número solo puede contener dígitos.", true, 4000, false, true);
         return false;
     }
     return true; // Retorna true si pasa la validación
@@ -239,7 +267,8 @@ function validarManzana(input) {
     const valor = input.trim(); // Elimina espacios
     const regex = /^[a-zA-Z0-9]{1,2}$/; // Permite entre 1 y 2 letras o números
     if (valor && !regex.test(valor)) {
-        openModal("La manzana debe contener entre 1 y 2 letras o números.");
+        openModal("La manzana debe contener entre 1 y 2 letras o números.", true, 4000, false, true);
+        
         return false;
     }
     return true; // Retorna true si pasa la validación o está vacío
@@ -285,13 +314,15 @@ function validarArchivo(inputFile) {
 
     // Validar tipo de archivo
     if (!tiposPermitidos.includes(archivo.type)) {
-        openModal("El archivo debe ser JPG, JPEG o PNG.");
+        //openModal("El archivo debe ser JPG, JPEG o PNG.");
+        openModal("El archivo debe ser JPG, JPEG o PNG.", true, 4000, false, true);
+
         return false;
     }
 
     // Validar tamaño de archivo
     if (archivo.size > tamanioMaximo) {
-        openModal("El archivo no puede superar los 10MB.");
+        openModal("El archivo no puede superar los 10MB.", true, 4000, false, true);
         return false;
     }
 
@@ -311,7 +342,7 @@ function validarDomicilio() {
 
     function cantidadDeCaracteres(cadena){
         if (cadena.length > 150){
-            openModal("No puede ingresar más de 150 caracteres.");
+            openModal("No puede ingresar más de 150 caracteres.", true, 4000, false, true);
             return false
         }
         return true;
@@ -344,36 +375,38 @@ function validarDomicilio() {
     
     // Validación: Si se ingresa número, debe haber calle
     if (numero && !calle) {
-        openModal("Si se ingresa un número, debe ingresar una calle.");
+        openModal("Si se ingresa un número, debe ingresar una calle.", true, 3000, false, true);
+
+        //openModal("Si se ingresa un número, debe ingresar una calle.");
         return false;
     }
 
     // Validación: Si se ingresa manzana, debe haber casa
     if (manzana && !casa) {
-        openModal("Si se ingresa una manzana, debe ingresar una casa.");
+        openModal("Si se ingresa una manzana, debe ingresar una casa.", true, 4000, false, true);
         return false;
     }
 
     // Validación: Si se ingresa casa, debe haber manzana
     if (casa && !manzana) {
-        openModal("Si se ingresa una casa, debe ingresar una manzana.");
+        openModal("Si se ingresa una casa, debe ingresar una manzana.", true, 4000, false, true);
         return false;
     }
 
     // Validación: Si se ingresa manzana o casa, debe haber barrio
     if ((manzana || casa) && !barrio) {
-        openModal("Si se ingresa una manzana o una casa, debe ingresar un barrio.");
+        openModal("Si se ingresa una manzana o una casa, debe ingresar un barrio.", true, 4000, false, true);
         return false;
     }
 
     // Validación: Si se ingresa calle, se requiere número, pero solo si no hay manzana ni casa
     if (calle && !numero && !manzana && !casa) {
-        openModal("Si se ingresa una calle, debe ingresar un número.");
+        openModal("Si se ingresa una calle, debe ingresar un número.", true, 4000, false, true);
         return false;
     }
 
     if (!tieneCalleYNumero && !tieneBarrioManzanaCasa) {
-        openModal("Debe completar Calle y Número o Barrio, Manzana y Casa.");
+        openModal("Debe completar Calle y Número o Barrio, Manzana y Casa.", true, 4000, false, true);
         return false;
     }
 
@@ -434,20 +467,20 @@ function validarDomicilio() {
 
     // Si no hay fecha seleccionada
     if (!fechaSeleccionada) {
-        openModal("Debe seleccionar una fecha válida.");
+        openModal("Debe seleccionar una fecha válida.", true, 4000, false, true);
         return;
     }
 
     // Verificar si la fecha seleccionada es posterior a la actual
     if (fechaSeleccionada > maxDate) {
-        openModal("La fecha seleccionada no puede ser posterior a la actual.");
+        openModal("La fecha seleccionada no puede ser posterior a la actual.", true, 4000, false, true);
         return;
     }
 
     // Validar el formato de la fecha y reformatarla
     const [anio, mes, dia] = fechaSeleccionada.split('-');
     const fechaFormateada = `${dia}/${mes}/${anio}`;
-    console.log("Fecha formateada para enviar:", fechaFormateada);
+    //console.log("Fecha formateada para enviar:", fechaFormateada);
     
     
     // Validar la hora
@@ -465,13 +498,13 @@ function validarDomicilio() {
 
     // Validar si el valor ingresado no es un número
     if (isNaN(horaSeleccionada)) {
-        openModal("Por favor, ingrese una hora válida.");
+        openModal("Por favor, ingrese una hora válida.", true, 4000, false, true);
         return;
     }
 
     // Validar que la hora seleccionada no sea mayor que la hora actual
     if (horaSeleccionada > currentHour) {
-        openModal("La hora de infracción no puede ser posterior a la hora actual.");
+        openModal("La hora de infracción no puede ser posterior a la hora actual.", true, 4000, false, true);
         return;
     }
 
@@ -527,7 +560,7 @@ function validarDomicilio() {
                 const filename = fileData.filename; // Obtener el nombre del archivo
                 formData.append("p_foto", filename);  // Enviar solo el nombre del archivo a la base de datos
             } else {
-                openModal("Error al subir el archivo");
+                openModal("Error al subir el archivo", true, 4000, false, true);
                 return;
             }
         }
@@ -546,16 +579,18 @@ function validarDomicilio() {
             if (response.ok) {
                 const result = await response.text(); 
                 //console.log("Respuesta de la API:", result);
-                openModal("Gracias. Su denuncia ha sido registrada.");
+                //openModal("Gracias. Su denuncia ha sido registrada.");
+                openModal("Gracias. Su denuncia ha sido registrada.", true, 4000, true, false);
+
                 formulario.reset();
             } else {
                 const error = await response.text();
                 //console.error("Error en la respuesta:", error);
-                openModal("Hubo un problema al enviar los datos. Verifica tu información.");
+                openModal("Hubo un problema al enviar los datos. Verifica tu información.", true, 4000, false, true);
             }
         } catch (error) {
             //console.error("Error al enviar los datos:", error);
-            openModal("Ocurrió un error inesperado al enviar el formulario.");
+            openModal("Ocurrió un error inesperado al enviar el formulario.", true, 4000, false, true);
          } finally {
             // Oculta el overlay
             overlay.classList.add("hidden");
