@@ -10,8 +10,8 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     async function fetchConfig() {
         try {
-            const response = await fetch("http://localhost:8000/config");
-            //const response = await fetch("https://api.aysam.com.ar/config");
+            //const response = await fetch("http://localhost:8000/config");
+            const response = await fetch("https://api.aysam.com.ar/config");
             if (!response.ok) throw new Error("Error al obtener configuración");
             const data = await response.json();
             console.log("Configuración recibida:", data);

@@ -10,8 +10,8 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     async function fetchConfig() {
         try {
-            const response = await fetch("http://localhost:8000/config");
-            //const response = await fetch("https://api.aysam.com.ar/config");
+            //const response = await fetch("http://localhost:8000/config");
+            const response = await fetch("https://api.aysam.com.ar/config");
             if (!response.ok) throw new Error("Error al obtener configuración");
             const data = await response.json();
             console.log("Configuración recibida:", data);
@@ -415,7 +415,7 @@ function validarDomicilio() {
         //console.log("Fecha formateada para enviar:", fechaFormateada);*/
 
           // Obtener la fecha máxima (hoy)
-    const today = new Date();
+    /*const today = new Date();
     const yyyy = today.getFullYear();
     const mm = String(today.getMonth() + 1).padStart(2, '0'); // Mes con 2 dígitos
     const dd = String(today.getDate()).padStart(2, '0');      // Día con 2 dígitos
@@ -475,7 +475,75 @@ function validarDomicilio() {
     if (horaSeleccionada > currentHour) {
         openModal("La hora de infracción no puede ser posterior a la hora actual.");
         return;
-    }
+    }*/
+
+        const today = new Date();
+        const yyyy = today.getFullYear();
+        const mm = String(today.getMonth() + 1).padStart(2, '0'); // Mes con 2 dígitos
+        const dd = String(today.getDate()).padStart(2, '0');      // Día con 2 dígitos
+        const maxDate = `${yyyy}-${mm}-${dd}`;
+        
+        // Obtener el input de fecha
+        const fechaInput = document.getElementById("fecha_infraccion");
+        if (!fechaInput) {
+            //console.error("No se encontró el input con ID 'fecha_infraccion'.");
+            return;
+        }
+        
+        // Establecer el atributo 'max'
+        fechaInput.setAttribute('max', maxDate);
+        
+        // Validar la fecha seleccionada
+        const fechaSeleccionada = fechaInput.value;
+        
+        // Si no hay fecha seleccionada
+        if (!fechaSeleccionada) {
+            openModal("Debe seleccionar una fecha válida.");
+            return;
+        }
+        
+        // Verificar si la fecha seleccionada es posterior a la actual
+        if (fechaSeleccionada > maxDate) {
+            openModal("La fecha seleccionada no puede ser posterior a la actual.");
+            return;
+        }
+        
+        // Validar el formato de la fecha y reformatarla
+        const [anio, mes, dia] = fechaSeleccionada.split('-');
+        const fechaFormateada = `${dia}/${mes}/${anio}`;
+        console.log("Fecha formateada para enviar:", fechaFormateada);
+        
+        // Validar la hora
+        const currentHour = today.getHours();
+        const horaInput = document.getElementById("hora");
+        
+        // Asegúrate de que exista el campo de hora
+        if (!horaInput) {
+            //console.error("No se encontró el input con ID 'hora'.");
+            return;
+        }
+        
+        // Obtener el valor ingresado
+        const horaSeleccionada = parseInt(horaInput.value, 10);
+        
+        // Validar si el valor ingresado no es un número
+        if (isNaN(horaSeleccionada)) {
+            openModal("Por favor, ingrese una hora válida.");
+            return;
+        }
+        
+        // Validar la hora dependiendo de la fecha seleccionada
+        if (fechaSeleccionada === maxDate) {
+            // Si es la fecha actual, validar que la hora no sea posterior a la actual
+            if (horaSeleccionada > currentHour) {
+                openModal("La hora de infracción no puede ser posterior a la hora actual.");
+                return;
+            }
+        } else if (fechaSeleccionada < maxDate) {
+            // Si es una fecha anterior, permitir cualquier hora
+            console.log("Fecha anterior a hoy: la hora puede ser cualquiera.");
+        }
+        
 
 // Si todo es válido
     //console.log("Formulario válido. Fecha:", fechaFormateada, "Hora:", horaSeleccionada);
@@ -529,6 +597,7 @@ function validarDomicilio() {
                 const filename = fileData.filename; // Obtener el nombre del archivo
                 formData.append("p_foto", filename);  // Enviar solo el nombre del archivo a la base de datos
             } else {
+                overlay.classList.add("hidden");
                 openModal("Error al subir el archivo");
                 return;
             }
@@ -557,6 +626,7 @@ function validarDomicilio() {
                 openModal("Hubo un problema al enviar los datos. Verifica tu información.");
             }
         } catch (error) {
+            overlay.classList.add("hidden");
             //console.error("Error al enviar los datos:", error);
             openModal("Ocurrió un error inesperado al enviar el formulario.");
          } finally {

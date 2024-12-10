@@ -82,7 +82,7 @@ async def get_config():
                     "API_POST_FORMULARIO": os.getenv("API_POST_FORMULARIO_PROD"),
                     "API_UPLOAD_FOTO": os.getenv("API_UPLOAD_FOTO_PROD"),
                     "RECAPTCHA_SITE_KEY": os.getenv("RECAPTCHA_SITE_KEY_PROD"),
-                    "RECAPTCHA_SECRET_KEY": os.getenv("RECAPTCHA_SECRET_KEY_PROD")
+                    "RECAPTCHA_SECRET_KEY": os.getenv("RECAPTCHA_SECRET_KEY_PROD"),
                 })
             else:
                 return JSONResponse(content={
@@ -91,23 +91,59 @@ async def get_config():
                     "API_POST_FORMULARIO": os.getenv("API_POST_FORMULARIO_TEST"),
                     "API_UPLOAD_FOTO": os.getenv("API_UPLOAD_FOTO_TEST"),
                     "RECAPTCHA_SITE_KEY": os.getenv("RECAPTCHA_SITE_KEY_TEST"),
-                    "RECAPTCHA_SECRET_KEY": os.getenv("RECAPTCHA_SECRET_KEY_TEST")
+                    "RECAPTCHA_SECRET_KEY": os.getenv("RECAPTCHA_SECRET_KEY_TEST"),
                 })
 
 
 
 # Configuración de SMB
-UPLOAD_FOLDER = Path("//10.10.0.239/fotos")
 ALLOWED_EXTENSIONS = {'jpg', 'jpeg', 'png'}
-
 # Configuración
 server = "10.10.0.239"  # Dirección del servidor SMB
-share_name = "fotos"    # Nombre del recurso compartido
-username = "derroche"   # Nombre de usuario
-password = "nKVHB4m1S3"  # Contraseña
-read_username = "leederroche"
-read_password = "56gybwbAy0Yg"
+share_name = "fotosTEST"    # Nombre del recurso compartido
+username = "derrochetest"   # Nombre de usuario
+password = "Q929IjRfMg6p"  # Contraseña
+read_username = "leederrochetest"
+read_password = "57LXz7q2g2BJ"
 
+class Config:
+    # Leer el entorno (por defecto "TEST")
+    ENVIRONMENT = os.getenv("ENVIRONMENT", "TEST")
+    
+    # Configuración de SMB por entorno
+    SMB_CONFIG = {
+        "TEST": {
+            "SMB_SERVER": os.getenv('SMB_SERVER'),
+            "SHARE_NAME_ESCRITURA": os.getenv('SMB_SHARE_NAME_ESCRITURA_TEST'),
+            "USERNAME_ESCRITURA": os.getenv('SMB_USERNAME_ESCRITURA_TEST'),
+            "PASSWORD_ESCRITURA": os.getenv('SMB_PASSWORD_ESCRITURA_TEST'),
+        },
+        "PROD": {
+            "SMB_SERVER": os.getenv('SMB_SERVER'),
+            "SHARE_NAME_ESCRITURA": os.getenv('SMB_SHARE_NAME_ESCRITURA'),
+            "USERNAME_ESCRITURA": os.getenv('SMB_USERNAME_ESCRITURA'),
+            "PASSWORD_ESCRITURA": os.getenv('SMB_PASSWORD_ESCRITURA'),
+        }
+    }
+
+def get_smb_config():
+    # Obtener la configuración según el entorno
+    environment = Config.ENVIRONMENT
+    smb_config = Config.SMB_CONFIG.get(environment)
+    
+    if not smb_config:
+        raise ValueError(f"Configuración SMB no encontrada para el entorno '{environment}'")
+    
+    # Verificar que todas las variables de entorno necesarias están presentes
+    if not all(smb_config.values()):
+        raise ValueError(f"Faltan variables de entorno necesarias para la configuración SMB en el entorno '{environment}'")
+    
+    return smb_config
+
+#print("SMB_SERVER:", os.getenv('SMB_SERVER'))
+#print("SMB_SHARE_NAME_ESCRITURA:", os.getenv('SMB_SHARE_NAME_ESCRITURA'))
+#print("SMB_USERNAME_ESCRITURA:", os.getenv('SMB_USERNAME_ESCRITURA'))
+#print("SMB_PASSWORD_ESCRITURA:", os.getenv('SMB_PASSWORD_ESCRITURA'))
 
 def connect_to_smb_server_wr(server, username, password):
     """Configura la conexión SMB utilizando pysmb"""
@@ -210,6 +246,26 @@ def get_file_from_smb(filename: str, server: str, share_name: str, username: str
         if conn:
             conn.close()
 
+"""def test_write_permissions(directory_path: str):
+    try:
+        test_file_path = os.path.join(directory_path, "test_write.txt")
+        with open(test_file_path, 'w') as f:
+            f.write("Prueba de escritura.")
+        os.remove(test_file_path)
+        print("Tienes permisos para escribir.")
+    except PermissionError:
+        print("No tienes permisos para escribir.")
+    except Exception as e:
+        print(f"Error inesperado: {e}")
+
+if __name__ == "__main__":
+    # Define la ruta del directorio a probar
+    directory_path = "\\\\10.10.0.239\\fotosTEST"  # Ajusta según tu sistema operativo
+
+    # Llama a la función de prueba
+    test_write_permissions(directory_path)"""
+
+
 
 def allowed_file(filename: str) -> bool:
     """Verifica si el archivo tiene una extensión permitida"""
@@ -217,6 +273,7 @@ def allowed_file(filename: str) -> bool:
 
 @app.post("/upload")
 async def upload_file(file: UploadFile = File(...)):
+
     if not allowed_file(file.filename):
         raise HTTPException(status_code=400, detail="Tipo de archivo no permitido")
     
@@ -230,9 +287,12 @@ async def upload_file(file: UploadFile = File(...)):
 
     # Parámetros para la conexión SMB
     server = "10.10.0.239"  # Dirección del servidor SMB
-    share_name = "fotos"    # Nombre del recurso compartido
-    username = "derroche"   # Nombre de usuario
-    password = "nKVHB4m1S3"  # Contraseña
+    share_name = "fotosTEST"    # Nombre del recurso compartido
+    username = "derrochetest"   # Nombre de usuario
+    password = "Q929IjRfMg6p"  # Contraseña
+    #share_name = "fotosPROD"    # Nombre del recurso compartido
+    #username = "derrocheprod"   # Nombre de usuario
+    #password = "p0fsWh253JJq"  # Contraseña
 
     try:
         # Leer el contenido del archivo
@@ -247,18 +307,23 @@ async def upload_file(file: UploadFile = File(...)):
         }, status_code=200)
     
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error en el procesamiento del archivo: {e}")
+        error_message = f"{type(e).__name__}: {str(e)}"  # Captura el tipo de excepción y el mensaje
+    raise HTTPException(status_code=500, detail=f"Error en el procesamiento del archivo: {error_message}")
 
 
 @app.get("/file/{new_filename}")
 async def get_file(new_filename: str):
+    config = get_smb_config()
+    if not config:
+        raise HTTPException(status_code=500, detail="Configuración SMB no encontrada")
     """
     Endpoint para obtener la ruta del archivo en el servidor SMB y devolverla como JSON.
     """
-    server = "10.10.0.239"       # Dirección del servidor SMB
-    share_name = "fotos"         # Nombre del recurso compartido
-    username = "leederroche"     # Nombre de usuario para la conexión SMB
-    password = "56gybwbAy0Yg"         # Contraseña para la conexión SMB
+    # Parámetros para la conexión SMB
+    server = config.get('SMB_SERVER')       # Dirección del servidor SMB
+    share_name = config.get('SMB_SHARE_NAME_ESCRITURA')         # Nombre del recurso compartido
+    username = config.get('SMB_USERNAME_ESCRITURA')     # Nombre de usuario para la conexión SMB
+    password = config.get('SMB_PASSWORD_ESCRITURA')         # Contraseña para la conexión SMB
 
     try:
         # Configurar smbclient con las credenciales
@@ -285,13 +350,22 @@ async def get_file(new_filename: str):
 
 @app.get("/image/{filename}")
 async def get_image_from_smb(filename: str):
+    config = get_smb_config()
+    if not config:
+        raise HTTPException(status_code=500, detail="Configuración SMB no encontrada")
     """
     Endpoint para leer una imagen desde el servidor SMB y devolverla directamente.
     """
-    server = "10.10.0.239"       # Dirección del servidor SMB
-    share_name = "fotos"         # Nombre del recurso compartido
-    username = "leederroche"     # Nombre de usuario para la conexión SMB
-    password = "56gybwbAy0Yg"         # Contraseña para la conexión SMB
+   # Parámetros para la conexión SMB
+   # server = config.get('SMB_SERVER')       # Dirección del servidor SMB
+   # share_name = config.get('SMB_SHARE_NAME_ESCRITURA')         # Nombre del recurso compartido
+   # username = config.get('SMB_USERNAME_ESCRITURA')     # Nombre de usuario para la conexión SMB
+   # password = config.get('SMB_PASSWORD_ESCRITURA')         # Contraseña para la conexión SMB
+
+    server = "10.10.0.239"  # Dirección del servidor SMB
+    share_name = "fotosTEST"    # Nombre del recurso compartido
+    username = "derrochetest"   # Nombre de usuario
+    password = "Q929IjRfMg6p"  # Contraseña
 
     try:
         # Obtener el archivo desde el servidor SMB
@@ -309,6 +383,47 @@ async def get_image_from_smb(filename: str):
     except Exception as e:
         # Manejar errores inesperados
         raise HTTPException(status_code=500, detail=f"Error inesperado: {e}")
+    
+@app.get("/html/{filename}", response_class=HTMLResponse)
+async def get_html_with_image(filename: str):
+    config = get_smb_config()
+    if not config:
+        raise HTTPException(status_code=500, detail="Configuración SMB no encontrada")
+    """
+    Genera un HTML que incluye una imagen obtenida desde el servidor SMB.
+    """
+    server = config.get('SMB_SERVER')       # Dirección del servidor SMB
+    share_name = config.get('SMB_SHARE_NAME_ESCRITURA')         # Nombre del recurso compartido
+    username = config.get('SMB_USERNAME_ESCRITURA')     # Nombre de usuario para la conexión SMB
+    password = config.get('SMB_PASSWORD_ESCRITURA')         # Contraseña para la conexión SMB
+
+    try:
+        # Obtener el archivo desde el servidor SMB
+        file_like = read_from_smb(filename, server, share_name, username, password)
+
+        # Codificar la imagen como un objeto BytesIO
+        file_like.seek(0)  # Asegurar que el puntero esté al principio del archivo
+        
+        # Generar un HTML con la imagen incrustada
+        html_content = f"""
+        <html>
+            <head>
+                <title>Foto Derroche</title>
+            </head>
+            <body>
+                <img src="http://127.0.0.1:8000/image/{filename}" alt="Imagen desde SMB" style="max-width: 100%; height: auto;" />
+            </body>
+        </html>
+        """
+
+        return HTMLResponse(content=html_content)
+
+    except HTTPException as e:
+        # Relanzar errores HTTP definidos
+        raise e
+    except Exception as e:
+        # Manejar errores inesperados
+        raise HTTPException(status_code=500, detail=f"Error al generar el HTML: {e}")
 
 
 # Inicia el servidor FastAPI
