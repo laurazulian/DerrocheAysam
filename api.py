@@ -74,7 +74,7 @@ async def get_config():
 @app.get("/config")
 async def get_config():
             environment = os.getenv("ENVIRONMENT", "PROD")  # Default to "prod" if not set
-            
+            print (environment)
             if environment == "PROD":
                 return JSONResponse(content={
                     "API_GET_DEPARTAMENTOS": os.getenv("API_GET_DEPARTAMENTOS_PROD"),
@@ -130,7 +130,10 @@ class Config:
             "USERNAME_ESCRITURA": os.getenv('SMB_USERNAME_ESCRITURA'),
             "PASSWORD_ESCRITURA": os.getenv('SMB_PASSWORD_ESCRITURA'),
         }
+        
     }
+   
+
 
 def get_smb_config():
     # Obtener la configuración según el entorno
@@ -145,6 +148,29 @@ def get_smb_config():
         raise ValueError(f"Faltan variables de entorno necesarias para la configuración SMB en el entorno '{environment}'")
     
     return smb_config
+
+print("Variables de TEST:", {
+    "SMB_SERVER": os.getenv('SMB_SERVER'),
+    "SHARE_NAME_ESCRITURA_TEST": os.getenv('SMB_SHARE_NAME_ESCRITURA_TEST'),
+    "USERNAME_ESCRITURA_TEST": os.getenv('SMB_USERNAME_ESCRITURA_TEST'),
+    "PASSWORD_ESCRITURA_TEST": os.getenv('SMB_PASSWORD_ESCRITURA_TEST'),
+})
+
+print("Variables de PROD:", {
+    "ENVIRONMENT":  os.getenv('ENVIRONMENT'),
+    "SMB_SERVER": os.getenv('SMB_SERVER'),
+    "SHARE_NAME_ESCRITURA": os.getenv('SMB_SHARE_NAME_ESCRITURA'),
+    "USERNAME_ESCRITURA": os.getenv('SMB_USERNAME_ESCRITURA'),
+    "PASSWORD_ESCRITURA": os.getenv('SMB_PASSWORD_ESCRITURA'),
+    "API_GET_DEPARTAMENTOS": os.getenv("API_GET_DEPARTAMENTOS_PROD"),
+    "API_GET_TIPIFICACIONES": os.getenv("API_GET_TIPIFICACIONES_PROD"),
+    "API_POST_FORMULARIO": os.getenv("API_POST_FORMULARIO_PROD"),
+    "API_UPLOAD_FOTO": os.getenv("API_UPLOAD_FOTO_PROD"),
+    "RECAPTCHA_SITE_KEY": os.getenv("RECAPTCHA_SITE_KEY_PROD"),
+    "RECAPTCHA_SECRET_KEY": os.getenv("RECAPTCHA_SECRET_KEY_PROD"),
+})
+
+
 
 #print("SMB_SERVER:", os.getenv('SMB_SERVER'))
 #print("SMB_SHARE_NAME_ESCRITURA:", os.getenv('SMB_SHARE_NAME_ESCRITURA'))

@@ -5,7 +5,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     const fileInput = document.getElementById("foto");
     const overlay = document.getElementById("overlay");
     
-
     let appConfig = {};
 
     async function fetchConfig() {
@@ -145,22 +144,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         }
     }
     
-    // Función para abrir el modal con un mensaje y cerrarlo automáticamente
-       /* function openModal(message, autoClose = true, closeAfter = 3000) { // Por defecto, cierra tras 3 segundos
-            const modalMessage = document.getElementById("modalMessage");
-            const messageModal = document.getElementById("messageModal");
-            
-            modalMessage.textContent = message;
-            messageModal.style.display = "block";
 
-            // Cerrar automáticamente el modal si está habilitado
-            if (autoClose) {
-                setTimeout(() => {
-                    messageModal.style.display = "none";
-                }, closeAfter);
-            }
-        }
-*/
         function openModal(message, autoClose = true, closeAfter = 4000, showCheck = false, showCross = false) {
             const modalMessage = document.getElementById("modalMessage");
             const messageModal = document.getElementById("messageModal");
